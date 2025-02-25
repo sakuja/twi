@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${index + 1}</td>
                 <td>
                     <div class="streamer-cell">
-                        <img src="${stream.thumbnail_url || 'placeholder.jpg'}" alt="${stream.user_name}" class="streamer-thumbnail">
+                        <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="${stream.user_name}" class="streamer-thumbnail">
                         <span>${stream.user_name}</span>
                     </div>
                 </td>
@@ -69,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
             errorElement.textContent = message || 'データの取得に失敗しました';
             errorElement.style.display = 'block';
         }
+        // エラー発生時にデモデータを表示
+        loadDemoData();
     }
     
     // デモ用：APIが実装されるまで使用するダミーデータを表示
@@ -91,33 +93,40 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTable(demoData);
     }
     
-    // 初回はデモデータを表示
-    console.log('Initializing with demo data');
-    loadDemoData();
+    // APIからデータを取得する
+    async function fetchData() {
+        try {
+            // ローディング表示、エラーとテーブルを非表示
+            if (loadingElement) loadingElement.style.display = 'block';
+            if (errorElement) errorElement.style.display = 'none';
+            if (rankingsTable) rankingsTable.style.display = 'none';
+            
+            console.log('Fetching data from API...');
+            
+            // APIからデータを取得
+            const response = await fetch('/api/streams');
+            
+            // レスポンスのステータスをチェック
+            if (!response.ok) {
+                throw new Error(`APIエラー: ${response.status}`);
+            }
+            
+            // JSONデータを解析
+            const data = await response.json();
+            console.log('Received data from API:', data);
+            
+            // テーブルを更新
+            updateTable(data);
+            
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            showError(error.message);
+        }
+    }
     
-    // 将来的にAPI実装後は以下をコメント解除
-    // async function fetchData() {
-    //     try {
-    //         loadingElement.style.display = 'block';
-    //         errorElement.style.display = 'none';
-    //         rankingsTable.style.display = 'none';
-    //         
-    //         const response = await fetch('/api/streams');
-    //         
-    //         if (!response.ok) {
-    //             throw new Error(`APIエラー: ${response.status}`);
-    //         }
-    //         
-    //         const data = await response.json();
-    //         updateTable(data);
-    //         
-    //     } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //         showError(error.message);
-    //         loadDemoData(); // エラー時はデモデータを表示
-    //     }
-    // }
-    // 
-    // fetchData();
-    // setInterval(fetchData, 60000);
+    // 初回データ取得
+    fetchData();
+    
+    // 60秒ごとにデータを更新
+    setInterval(fetchData, 60000);
 });
