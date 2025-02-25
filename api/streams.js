@@ -1,8 +1,8 @@
 const axios = require('axios');
 
 // Twitch APIの認証情報
-const TWITCH_CLIENT_ID = process.env.0q0t4u78p93nih8z1l2dek9fglpz23;
-const TWITCH_CLIENT_SECRET = process.env.y8prq5lf3w7m5jo67hibkv8ei8xdra;
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 
 // キャッシュ変数
 let twitchToken = null;
