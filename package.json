@@ -3,15 +3,8 @@
   "version": "1.0.0",
   "description": "Twitch同時接続数ランキングサイト",
   "main": "index.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
   "dependencies": {
     "axios": "^1.6.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=14.0.0"
