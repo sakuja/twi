@@ -1,28 +1,28 @@
 <?php
-// CORSƒwƒbƒ_[‚ğİ’è
+// CORSãƒ˜ãƒƒãƒ€ãƒ¼ã‚’è¨­å®š
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-// Twitch API”FØî•ñ
+// Twitch APIèªè¨¼æƒ…å ±
 $clientId = '0q0t4u78p93nih8z1l2dek9fglpz23';
-$clientSecret = 'y8prq5lf3w7m5jo67hibkv8ei8xdra';
+$clientSecret = '2wevk9sshtktaq2wkf09ao2j2em1lh';
 
-// ƒZƒbƒVƒ‡ƒ“‚ğŠJn‚µ‚Äƒg[ƒNƒ“‚ğ•Û‘¶
+// ã‚»ãƒƒã‚·ãƒ§ãƒ³ã‚’é–‹å§‹ã—ã¦ãƒˆãƒ¼ã‚¯ãƒ³ã‚’ä¿å­˜
 session_start();
 
 /**
- * Twitch‚Ì”FØƒg[ƒNƒ“‚ğæ“¾‚·‚éŠÖ”
+ * Twitchã®èªè¨¼ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—ã™ã‚‹é–¢æ•°
  */
 function getTwitchToken() {
     global $clientId, $clientSecret;
     
-    // ƒZƒbƒVƒ‡ƒ“‚Éƒg[ƒNƒ“‚ª•Û‘¶‚³‚ê‚Ä‚¢‚é‚©Šm”F
+    // ã‚»ãƒƒã‚·ãƒ§ãƒ³ã«ãƒˆãƒ¼ã‚¯ãƒ³ãŒä¿å­˜ã•ã‚Œã¦ã„ã‚‹ã‹ç¢ºèª
     if (isset($_SESSION['twitch_token']) && isset($_SESSION['token_expiry']) && 
         $_SESSION['token_expiry'] > time()) {
         return $_SESSION['twitch_token'];
     }
     
-    // V‚µ‚¢ƒg[ƒNƒ“‚ğæ“¾
+    // æ–°ã—ã„ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—
     $ch = curl_init();
     
     curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token');
@@ -48,15 +48,15 @@ function getTwitchToken() {
         die(json_encode(['error' => 'Invalid response from Twitch API']));
     }
     
-    // ƒg[ƒNƒ“‚ğƒZƒbƒVƒ‡ƒ“‚É•Û‘¶
+    // ãƒˆãƒ¼ã‚¯ãƒ³ã‚’ã‚»ãƒƒã‚·ãƒ§ãƒ³ã«ä¿å­˜
     $_SESSION['twitch_token'] = $data['access_token'];
-    $_SESSION['token_expiry'] = time() + ($data['expires_in'] * 0.9); // 90%‚ÌŠÔ‚ğg—p
+    $_SESSION['token_expiry'] = time() + ($data['expires_in'] * 0.9); // 90%ã®æ™‚é–“ã‚’ä½¿ç”¨
     
     return $data['access_token'];
 }
 
 /**
- * Twitch API‚ÉƒŠƒNƒGƒXƒg‚ğ‘—M‚·‚éŠÖ”
+ * Twitch APIã«ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’é€ä¿¡ã™ã‚‹é–¢æ•°
  */
 function twitchApiRequest($url, $params = []) {
     global $clientId;
@@ -64,7 +64,7 @@ function twitchApiRequest($url, $params = []) {
     
     $ch = curl_init();
     
-    // ƒpƒ‰ƒ[ƒ^‚ğ’Ç‰Á
+    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¿½åŠ 
     if (!empty($params)) {
         $url .= '?' . http_build_query($params);
     }
@@ -87,14 +87,14 @@ function twitchApiRequest($url, $params = []) {
     return json_decode($response, true);
 }
 
-// ƒXƒgƒŠ[ƒ€ƒf[ƒ^‚ğæ“¾
+// ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
 $streamsResponse = twitchApiRequest('https://api.twitch.tv/helix/streams', ['first' => 100]);
 
 if (!isset($streamsResponse['data'])) {
     die(json_encode(['error' => 'Failed to fetch stream data']));
 }
 
-// ƒ†[ƒU[ID‚ÆƒQ[ƒ€ID‚ğûW
+// ãƒ¦ãƒ¼ã‚¶ãƒ¼IDã¨ã‚²ãƒ¼ãƒ IDã‚’åé›†
 $userIds = [];
 $gameIds = [];
 
@@ -105,20 +105,20 @@ foreach ($streamsResponse['data'] as $stream) {
     }
 }
 
-// d•¡‚ğœ‹
+// é‡è¤‡ã‚’é™¤å»
 $userIds = array_unique($userIds);
 $gameIds = array_unique($gameIds);
 
-// ƒ†[ƒU[î•ñ‚ğæ“¾
+// ãƒ¦ãƒ¼ã‚¶ãƒ¼æƒ…å ±ã‚’å–å¾—
 $usersResponse = twitchApiRequest('https://api.twitch.tv/helix/users', ['id' => implode(',', $userIds)]);
 
-// ƒQ[ƒ€î•ñ‚ğæ“¾
+// ã‚²ãƒ¼ãƒ æƒ…å ±ã‚’å–å¾—
 $gamesResponse = [];
 if (!empty($gameIds)) {
     $gamesResponse = twitchApiRequest('https://api.twitch.tv/helix/games', ['id' => implode(',', $gameIds)]);
 }
 
-// ƒ†[ƒU[ƒf[ƒ^‚ğƒ}ƒbƒv
+// ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
 $usersMap = [];
 if (isset($usersResponse['data'])) {
     foreach ($usersResponse['data'] as $user) {
@@ -126,7 +126,7 @@ if (isset($usersResponse['data'])) {
     }
 }
 
-// ƒQ[ƒ€ƒf[ƒ^‚ğƒ}ƒbƒv
+// ã‚²ãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
 $gamesMap = [];
 if (isset($gamesResponse['data'])) {
     foreach ($gamesResponse['data'] as $game) {
@@ -134,7 +134,7 @@ if (isset($gamesResponse['data'])) {
     }
 }
 
-// ƒXƒgƒŠ[ƒ€ƒf[ƒ^‚ğ®Œ`
+// ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’æ•´å½¢
 $streams = [];
 foreach ($streamsResponse['data'] as $stream) {
     $user = isset($usersMap[$stream['user_id']]) ? $usersMap[$stream['user_id']] : [];
@@ -156,10 +156,10 @@ foreach ($streamsResponse['data'] as $stream) {
     ];
 }
 
-// ‹’®Ò”‚Åƒ\[ƒg
+// è¦–è´è€…æ•°ã§ã‚½ãƒ¼ãƒˆ
 usort($streams, function($a, $b) {
     return $b['viewer_count'] - $a['viewer_count'];
 });
 
-// JSON‚Æ‚µ‚Äo—Í
+// JSONã¨ã—ã¦å‡ºåŠ›
 echo json_encode($streams);
