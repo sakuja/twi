@@ -1,23 +1,23 @@
-// APIŒÄ‚Ño‚µ•”•ª‚Ì‚İ”²ˆ
+// APIå‘¼ã³å‡ºã—éƒ¨åˆ†ã®ã¿æŠœç²‹
 async function fetchData() {
     try {
-        // ƒ[ƒfƒBƒ“ƒO•\¦AƒGƒ‰[‚Æƒe[ƒuƒ‹‚ğ”ñ•\¦
+        // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°è¡¨ç¤ºã€ã‚¨ãƒ©ãƒ¼ã¨ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’éè¡¨ç¤º
         loadingElement.style.display = 'block';
         errorElement.style.display = 'none';
         rankingsTable.style.display = 'none';
         
-        // PHP‚ÌAPI‚©‚çƒf[ƒ^‚ğæ“¾
-        const response = await fetch('api.php');
+        // PHPã®APIã‹ã‚‰ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
+        const response = await fetch('/api/streams');
         
-        // ƒŒƒXƒ|ƒ“ƒX‚ÌƒXƒe[ƒ^ƒX‚ğƒ`ƒFƒbƒN
+        // ãƒ¬ã‚¹ãƒãƒ³ã‚¹ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’ãƒã‚§ãƒƒã‚¯
         if (!response.ok) {
-            throw new Error(`APIƒGƒ‰[: ${response.status}`);
+            throw new Error(`APIã‚¨ãƒ©ãƒ¼: ${response.status}`);
         }
         
-        // JSONƒf[ƒ^‚ğ‰ğÍ
+        // JSONãƒ‡ãƒ¼ã‚¿ã‚’è§£æ
         const data = await response.json();
         
-        // ƒe[ƒuƒ‹‚ğXV
+        // ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’æ›´æ–°
         updateTable(data);
         
     } catch (error) {
