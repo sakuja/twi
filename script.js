@@ -20,47 +20,56 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimeElement.textContent = now.toLocaleString('ja-JP');
     }
     
-    // テーブルを更新する関数
-    function updateTable(data) {
-        console.log('Updating table with data');
+// テーブルを更新する関数
+function updateTable(data) {
+    console.log('Updating table with data');
+    
+    // テーブルの内容をクリア
+    rankingsBody.innerHTML = '';
+    
+    // データをテーブルに挿入
+    data.forEach((stream, index) => {
+        const row = document.createElement('tr');
         
-        // テーブルの内容をクリア
-        rankingsBody.innerHTML = '';
+        // 上位3位にクラスを追加
+        if (index < 3) {
+            row.classList.add('top-rank');
+        }
         
-        // データをテーブルに挿入
-        data.forEach((stream, index) => {
-            const row = document.createElement('tr');
-            
-            // 上位3位にクラスを追加
-            if (index < 3) {
-                row.classList.add('top-rank');
-            }
-            
-            // 行の内容を作成
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>
-                    <div class="streamer-cell">
+        // Twitchの配信URLを作成
+        const twitchUrl = `https://twitch.tv/${stream.user_login}`;
+        
+        // 行の内容を作成（ストリーマー名とゲームタイトルにリンク追加）
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <div class="streamer-cell">
+                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
                         <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="${stream.user_name}" class="streamer-thumbnail">
                         <span>${stream.user_name}</span>
-                    </div>
-                </td>
-                <td>${stream.game_name || 'N/A'}</td>
-                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-            `;
-            
-            rankingsBody.appendChild(row);
-        });
+                    </a>
+                </div>
+            </td>
+            <td>
+                <a href="${twitchUrl}" target="_blank" class="game-link">
+                    ${stream.game_name || 'N/A'}
+                </a>
+            </td>
+            <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+        `;
         
-        // ローディングを非表示、テーブルを表示
-        if (loadingElement) loadingElement.style.display = 'none';
-        if (rankingsTable) rankingsTable.style.display = 'table';
-        
-        // 更新時刻を設定
-        updateCurrentTime();
-        
-        console.log('Table updated successfully');
-    }
+        rankingsBody.appendChild(row);
+    });
+    
+    // ローディングを非表示、テーブルを表示
+    if (loadingElement) loadingElement.style.display = 'none';
+    if (rankingsTable) rankingsTable.style.display = 'table';
+    
+    // 更新時刻を設定
+    updateCurrentTime();
+    
+    console.log('Table updated successfully');
+}
     
     // エラー表示関数
     function showError(message) {
