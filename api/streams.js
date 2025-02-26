@@ -132,70 +132,79 @@ async function processStreams(streams, token) {
     }
   }
   
-  // ゲーム情報を取得 - 同様にバッチ処理
-  console.log('Fetching game information');
-  const gameIds = [...new Set(streams.map(stream => stream.game_id).filter(id => id))];
+// ゲーム情報を取得 - 同様にバッチ処理
+console.log('Fetching game information');
+const gameIds = [...new Set(streams.map(stream => stream.game_id).filter(id => id))];
+console.log(`Game IDs to fetch: ${gameIds.length}`, gameIds);
+
+// ゲームIDのバッチ処理
+const gameBatches = [];
+for (let i = 0; i < gameIds.length; i += 100) {
+  gameBatches.push(gameIds.slice(i, i + 100));
+}
+
+let allGames = [];
+for (const batch of gameBatches) {
+  if (batch.length === 0) continue;
   
-  // ゲームIDのバッチ処理
-  const gameBatches = [];
-  for (let i = 0; i < gameIds.length; i += 100) {
-    gameBatches.push(gameIds.slice(i, i + 100));
-  }
-  
-  let allGames = [];
-  for (const batch of gameBatches) {
-    if (batch.length === 0) continue;
-    
-    try {
-      const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
-        headers: {
-          'Client-ID': process.env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${token}`
-        },
-        params: {
-          id: batch.join(',')
-        }
-      });
-      
-      if (gamesResponse.data && gamesResponse.data.data) {
-        allGames = [...allGames, ...gamesResponse.data.data];
+  try {
+    console.log(`Fetching batch of ${batch.length} games`);
+    const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        id: batch.join(',')
       }
-    } catch (error) {
-      console.error('Error fetching game batch:', error.message);
-      // エラーが発生しても処理を続行
+    });
+    
+    if (gamesResponse.data && gamesResponse.data.data) {
+      console.log(`Retrieved ${gamesResponse.data.data.length} games`);
+      allGames = [...allGames, ...gamesResponse.data.data];
+    } else {
+      console.log('No game data in response:', gamesResponse.data);
+    }
+  } catch (error) {
+    console.error('Error fetching game batch:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', JSON.stringify(error.response.data));
     }
   }
+}
+
+// マッピング用のオブジェクトを作成
+const gamesMap = {};
+allGames.forEach(game => {
+  gamesMap[game.id] = game;
+});
+console.log(`Created map with ${Object.keys(gamesMap).length} games`);
+
+// データを整形
+const formattedStreams = streams.map(stream => {
+  const user = usersMap[stream.user_id] || {};
+  const game = gamesMap[stream.game_id] || {};
   
-  // マッピング用のオブジェクトを作成
-  const usersMap = {};
-  allUsers.forEach(user => {
-    usersMap[user.id] = user;
-  });
+  // ゲームIDとゲーム名のログ
+  if (stream.game_id && !game.name) {
+    console.log(`Game ID ${stream.game_id} not found in games map`);
+  }
   
-  const gamesMap = {};
-  allGames.forEach(game => {
-    gamesMap[game.id] = game;
-  });
-  
-  // データを整形
-  const formattedStreams = streams.map(stream => {
-    const user = usersMap[stream.user_id] || {};
-    const game = gamesMap[stream.game_id] || {};
-    
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: game.name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      thumbnail_url: user.profile_image_url || '',
-      tags: stream.tags || []
-    };
-  });
+  return {
+    id: stream.id,
+    user_id: stream.user_id,
+    user_name: stream.user_name,
+    user_login: stream.user_login,
+    game_id: stream.game_id,
+    game_name: game.name || (stream.game_name || 'Unknown Game'),
+    title: stream.title,
+    viewer_count: stream.viewer_count,
+    language: stream.language,
+    thumbnail_url: user.profile_image_url || '',
+    tags: stream.tags || []
+  };
+});
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
