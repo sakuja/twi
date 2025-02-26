@@ -192,10 +192,13 @@ const formattedStreams = streams.map(stream => {
   const user = usersMap[stream.user_id] || {};
   const channel = channelsMap[stream.user_id] || {};
   
-  // デバッグ用
-  if (!user.profile_image_url) {
-    console.log(`User ${stream.user_name} has no profile image URL`);
-  }
+  // ストリームのサムネイルからプロフィール画像を生成
+  // 例: https://static-cdn.jtvnw.net/previews-ttv/live_user_USERNAME-{width}x{height}.jpg
+  const streamThumbnail = stream.thumbnail_url || '';
+  // ユーザー名でプロフィール画像URLを構築
+  const generatedProfileUrl = stream.user_login ? 
+    `https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.png` :
+    '';
   
   return {
     id: stream.id,
@@ -207,7 +210,7 @@ const formattedStreams = streams.map(stream => {
     title: stream.title,
     viewer_count: stream.viewer_count,
     language: stream.language,
-    thumbnail_url: user.profile_image_url || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png',
+    thumbnail_url: user.profile_image_url || generatedProfileUrl || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png',
     tags: stream.tags || []
   };
 });
