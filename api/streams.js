@@ -99,9 +99,36 @@ async function processStreams(streams, token) {
     return [];
   }
   
-  // ユーザー情報を取得
-  console.log('Fetching user information');
-  const userIds = streams.map(stream => stream.user_id);
+
+
+  // ユーザー情報を取得（具体的なAPIエンドポイントを確認して直接取得）
+console.log('Fetching user information');
+const userLogins = streams.map(stream => stream.user_login);
+
+// 配信者のログイン名でAPI呼び出し
+let allUsers = [];
+try {
+  // ログイン名を使ったユーザー情報の取得
+  const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+    headers: {
+      'Client-ID': process.env.TWITCH_CLIENT_ID,
+      'Authorization': `Bearer ${token}`
+    },
+    params: {
+      login: userLogins.join(',')
+    }
+  });
+  
+  if (usersResponse.data && usersResponse.data.data) {
+    console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
+    if (usersResponse.data.data.length > 0) {
+      console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
+    }
+    allUsers = usersResponse.data.data;
+  }
+} catch (error) {
+  console.error('Error fetching users by login:', error.message);
+}
   
   // ユーザーIDのバッチ処理
   const userBatches = [];
