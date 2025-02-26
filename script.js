@@ -32,25 +32,28 @@ function updateTable(data) {
         // 完全に新しい方法でHTMLを構築
         const twitchUrl = `https://twitch.tv/${stream.user_login}`;
         
-        const html = `
-            <tr class="${index < 3 ? 'top-rank' : ''}">
-                <td>${index + 1}</td>
-                <td>
-                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                        <div class="streamer-cell">
-                            <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="" class="streamer-thumbnail">
-                            <span>${stream.user_name}</span>
-                        </div>
-                    </a>
-                </td>
-                <td>
-                    <a href="${twitchUrl}" target="_blank" class="game-link">
-                        ${stream.game_name || 'No Title'}
-                    </a>
-                </td>
-                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-            </tr>
-        `;
+       const html = `
+    <tr class="${index < 3 ? 'top-rank' : ''}">
+        <td>${index + 1}</td>
+        <td>
+            <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                <div class="streamer-cell">
+                    <img src="${stream.thumbnail_url}" 
+                         alt="" 
+                         class="streamer-thumbnail"
+                         onerror="this.src='https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png'; this.onerror=null;">
+                    <span>${stream.user_name}</span>
+                </div>
+            </a>
+        </td>
+        <td>
+            <a href="${twitchUrl}" target="_blank" class="game-link">
+                ${stream.game_name || 'No Title'}
+            </a>
+        </td>
+        <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+    </tr>
+`;
         
         // 新しい行をテーブルに追加
         rankingsBody.insertAdjacentHTML('beforeend', html);
