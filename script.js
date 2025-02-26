@@ -29,34 +29,36 @@ function updateTable(data) {
     
     // データをテーブルに挿入
     data.forEach((stream, index) => {
-        // 完全に新しい方法でHTMLを構築
+        // Twitchの配信URLを作成
         const twitchUrl = `https://twitch.tv/${stream.user_login}`;
         
-  // HTML生成部分を修正
-const html = `
-    <tr class="${index < 3 ? 'top-rank' : ''}">
-        <td>${index + 1}</td>
-        <td>
-            <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                <div class="streamer-cell">
-                    <div class="avatar" style="background-color: #6441a5;">
-                        <span>${stream.user_name.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <span>${stream.user_name}</span>
-                </div>
-            </a>
-        </td>
-        <td>
-            <a href="${twitchUrl}" target="_blank" class="game-link">
-                ${stream.game_name || 'No Title'}
-            </a>
-        </td>
-        <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-    </tr>
-`;
+        // 簡易的なプロフィール画像の作成（初期のみ）
+        const initialImage = `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
         
-        // 新しい行をテーブルに追加
-        rankingsBody.insertAdjacentHTML('beforeend', html);
+        const row = document.createElement('tr');
+        if (index < 3) {
+            row.classList.add('top-rank');
+        }
+        
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                    <div class="streamer-cell">
+                        <img src="${initialImage}" class="streamer-thumbnail" alt="">
+                        <span>${stream.user_name}</span>
+                    </div>
+                </a>
+            </td>
+            <td>
+                <a href="${twitchUrl}" target="_blank" class="game-link">
+                    ${stream.game_name || 'No Title'}
+                </a>
+            </td>
+            <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+        `;
+        
+        rankingsBody.appendChild(row);
     });
     
     // ローディングを非表示、テーブルを表示
