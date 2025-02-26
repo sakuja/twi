@@ -39,24 +39,24 @@ function updateTable(data) {
         // Twitchの配信URLを作成
         const twitchUrl = `https://twitch.tv/${stream.user_login}`;
         
-        // 行の内容を作成（ストリーマー名とゲームタイトルにリンク追加）
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
-                <div class="streamer-cell">
-                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                        <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="${stream.user_name}" class="streamer-thumbnail">
-                        <span>${stream.user_name}</span>
-                    </a>
-                </div>
-            </td>
-            <td>
-                <a href="${twitchUrl}" target="_blank" class="game-link">
-                    ${stream.game_name || 'N/A'}
-                </a>
-            </td>
-            <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-        `;
+// 行の内容を作成（重複しているストリーマー名を削除）
+row.innerHTML = `
+    <td>${index + 1}</td>
+    <td>
+        <div class="streamer-cell">
+            <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="${stream.user_name}" class="streamer-thumbnail">
+                <span>${stream.user_name}</span>
+            </a>
+        </div>
+    </td>
+    <td>
+        <a href="${twitchUrl}" target="_blank" class="game-link">
+            ${stream.game_name || 'N/A'}
+        </a>
+    </td>
+    <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+`;
         
         rankingsBody.appendChild(row);
     });
