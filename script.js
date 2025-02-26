@@ -38,10 +38,11 @@ function updateTable(data) {
         <td>
             <a href="${twitchUrl}" target="_blank" class="streamer-link">
                 <div class="streamer-cell">
-                    <img src="${stream.thumbnail_url}" 
-                         alt="" 
+                    <img src="${stream.thumbnail_url}"
+                         alt=""
                          class="streamer-thumbnail"
-                         onerror="this.src='https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png'; this.onerror=null;">
+                         onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.png';"
+                         onError="this.onerror=null; this.src='https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png';">
                     <span>${stream.user_name}</span>
                 </div>
             </a>
