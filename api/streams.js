@@ -172,25 +172,26 @@ async function processStreams(streams, token) {
   
   console.log(`Created maps with ${Object.keys(usersMap).length} users and ${Object.keys(channelsMap).length} channels`);
   
-  // データを整形
-  const formattedStreams = streams.map(stream => {
-    const user = usersMap[stream.user_id] || {};
-    const channel = channelsMap[stream.user_id] || {};
-    
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: channel.game_name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      thumbnail_url: user.profile_image_url || '',
-      tags: stream.tags || []
-    };
-  });
+// データを整形
+const formattedStreams = streams.map(stream => {
+  const user = usersMap[stream.user_id] || {};
+  const channel = channelsMap[stream.user_id] || {};
+  
+  // ストリームのタイトルをゲーム名として使用
+  return {
+    id: stream.id,
+    user_id: stream.user_id,
+    user_name: stream.user_name,
+    user_login: stream.user_login,
+    game_id: stream.game_id,
+    game_name: stream.title || channel.game_name || 'Unknown Game',
+    title: stream.title,
+    viewer_count: stream.viewer_count,
+    language: stream.language,
+    thumbnail_url: user.profile_image_url || '',
+    tags: stream.tags || []
+  };
+});
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
