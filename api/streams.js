@@ -1,5 +1,11 @@
 const axios = require('axios');
 
+// キャッシュ変数
+let twitchToken = null;
+let tokenExpiry = null;
+let cachedData = null;
+let cacheTime = null;
+
 // APIハンドラー
 module.exports = async (req, res) => {
   try {
@@ -13,59 +19,177 @@ module.exports = async (req, res) => {
     
     console.log('API request received');
     
-    // 環境変数を確認
-    console.log('CLIENT_ID available:', !!process.env.TWITCH_CLIENT_ID);
-    console.log('CLIENT_SECRET available:', !!process.env.TWITCH_CLIENT_SECRET);
-    
-    // トークン認証のみをテスト
     try {
-      console.log('Attempting to get Twitch token...');
-      const tokenResponse = await axios.post('https://id.twitch.tv/oauth2/token', null, {
-        params: {
-          client_id: process.env.TWITCH_CLIENT_ID,
-          client_secret: process.env.TWITCH_CLIENT_SECRET,
-          grant_type: 'client_credentials'
-        }
-      });
-      
-      console.log('Token response received:', !!tokenResponse.data.access_token);
-      
-      // 成功した場合、トークンだけを返す（テスト用）
-      return res.status(200).json({ 
-        success: true, 
-        message: "Auth successful! Token received.",
-        demoData: getDemoData()
-      });
-      
-    } catch (error) {
-      console.error('Auth error details:', error.message);
-      if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
+      // キャッシュデータを確認
+      if (cachedData && cacheTime && (Date.now() - cacheTime) < 300000) {
+        console.log('Using cached data');
+        return res.status(200).json(cachedData);
       }
       
-      // 認証に失敗してもデモデータを返す
-      return res.status(200).json({ 
-        success: false, 
-        error: error.message,
-        message: "Auth failed, but here's demo data",
-        demoData: getDemoData()
-      });
+      // 新しいデータを取得
+      console.log('Getting fresh data from Twitch API');
+      const token = await getTwitchToken();
+      const streams = await fetchTwitchStreams(token);
+      
+      // キャッシュを更新
+      cachedData = streams;
+      cacheTime = Date.now();
+      
+      return res.status(200).json(streams);
+    } catch (error) {
+      console.error('Error fetching Twitch data:', error.message);
+      
+      // エラーログの詳細
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', JSON.stringify(error.response.data));
+      }
+      
+      // デモデータを返す
+      return res.status(200).json(getDemoData());
     }
-    
   } catch (error) {
-    console.error('Unexpected error:', error.message);
-    return res.status(200).json({ 
-      success: false, 
-      error: 'Internal Server Error', 
-      message: error.message,
-      demoData: getDemoData()
-    });
+    console.error('Unexpected server error:', error.message);
+    return res.status(200).json(getDemoData());
   }
 };
 
+// Twitchの認証トークンを取得する関数
+async function getTwitchToken() {
+  try {
+    // 有効なトークンがあれば再利用
+    if (twitchToken && tokenExpiry && Date.now() < tokenExpiry) {
+      console.log('Reusing existing token');
+      return twitchToken;
+    }
+    
+    console.log('Requesting new Twitch token');
+    const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
+      params: {
+        client_id: process.env.TWITCH_CLIENT_ID,
+        client_secret: process.env.TWITCH_CLIENT_SECRET,
+        grant_type: 'client_credentials'
+      }
+    });
+    
+    if (!response.data || !response.data.access_token) {
+      throw new Error('Invalid token response');
+    }
+    
+    console.log('Successfully obtained new token');
+    twitchToken = response.data.access_token;
+    tokenExpiry = Date.now() + (response.data.expires_in * 1000 * 0.9);
+    return twitchToken;
+  } catch (error) {
+    console.error('Token acquisition failed:', error.message);
+    throw error;
+  }
+}
+
+// Twitchストリームを取得する関数
+async function fetchTwitchStreams(token) {
+  try {
+    console.log('Fetching streams from Twitch API');
+    const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        first: 100
+      }
+    });
+    
+    if (!streamsResponse.data || !streamsResponse.data.data) {
+      throw new Error('Invalid streams response');
+    }
+    
+    const streams = streamsResponse.data.data;
+    console.log(`Retrieved ${streams.length} streams`);
+    
+    if (streams.length === 0) {
+      return [];
+    }
+    
+    // ユーザーとゲームのIDを集める
+    const userIds = streams.map(stream => stream.user_id);
+    const gameIds = [...new Set(streams.map(stream => stream.game_id).filter(id => id))];
+    
+    // ユーザー情報を取得
+    console.log('Fetching user information');
+    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        id: userIds.join(',')
+      }
+    });
+    
+    // ゲーム情報を取得
+    console.log('Fetching game information');
+    let gamesData = [];
+    if (gameIds.length > 0) {
+      const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          id: gameIds.join(',')
+        }
+      });
+      gamesData = gamesResponse.data.data || [];
+    }
+    
+    // マッピング用のオブジェクトを作成
+    const usersMap = {};
+    if (usersResponse.data && usersResponse.data.data) {
+      usersResponse.data.data.forEach(user => {
+        usersMap[user.id] = user;
+      });
+    }
+    
+    const gamesMap = {};
+    gamesData.forEach(game => {
+      gamesMap[game.id] = game;
+    });
+    
+    // データを整形
+    const formattedStreams = streams.map(stream => {
+      const user = usersMap[stream.user_id] || {};
+      const game = gamesMap[stream.game_id] || {};
+      
+      return {
+        id: stream.id,
+        user_id: stream.user_id,
+        user_name: stream.user_name,
+        user_login: stream.user_login,
+        game_id: stream.game_id,
+        game_name: game.name || 'Unknown Game',
+        title: stream.title,
+        viewer_count: stream.viewer_count,
+        language: stream.language,
+        thumbnail_url: user.profile_image_url || '',
+        tags: stream.tags || []
+      };
+    });
+    
+    // 視聴者数でソート
+    formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+    console.log('Successfully processed stream data');
+    
+    return formattedStreams;
+  } catch (error) {
+    console.error('Error in fetchTwitchStreams:', error.message);
+    throw error;
+  }
+}
+
 // デモデータを返す関数
 function getDemoData() {
+  console.log('Returning demo data instead');
   return [
     { user_name: "ストリーマー1", user_login: "streamer1", viewer_count: 45000, game_name: "フォートナイト", thumbnail_url: "https://via.placeholder.com/40" },
     { user_name: "ストリーマー2", user_login: "streamer2", viewer_count: 38000, game_name: "Apex Legends", thumbnail_url: "https://via.placeholder.com/40" },
