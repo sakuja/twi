@@ -99,66 +99,39 @@ async function processStreams(streams, token) {
     return [];
   }
   
-
-
-  // ユーザー情報を取得（具体的なAPIエンドポイントを確認して直接取得）
-console.log('Fetching user information');
-const userLogins = streams.map(stream => stream.user_login);
-
-// 配信者のログイン名でAPI呼び出し
-let allUsers = [];
-try {
-  // ログイン名を使ったユーザー情報の取得
-  const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
-    headers: {
-      'Client-ID': process.env.TWITCH_CLIENT_ID,
-      'Authorization': `Bearer ${token}`
-    },
-    params: {
-      login: userLogins.join(',')
-    }
-  });
+  // ユーザー情報を取得（ログイン名ベース）
+  console.log('Fetching user information by login');
+  const userLogins = streams.map(stream => stream.user_login);
   
-  if (usersResponse.data && usersResponse.data.data) {
-    console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
-    if (usersResponse.data.data.length > 0) {
-      console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
-    }
-    allUsers = usersResponse.data.data;
-  }
-} catch (error) {
-  console.error('Error fetching users by login:', error.message);
-}
-  
-  // ユーザーIDのバッチ処理
-  const userBatches = [];
-  for (let i = 0; i < userIds.length; i += 100) {
-    userBatches.push(userIds.slice(i, i + 100));
-  }
-  
+  // 配信者のログイン名でAPI呼び出し
   let allUsers = [];
-  for (const batch of userBatches) {
-    try {
-      const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
-        headers: {
-          'Client-ID': process.env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${token}`
-        },
-        params: {
-          id: batch.join(',')
-        }
-      });
-      
-      if (usersResponse.data && usersResponse.data.data) {
-        allUsers = [...allUsers, ...usersResponse.data.data];
+  try {
+    // ログイン名を使ったユーザー情報の取得
+    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        login: userLogins.join(',')
       }
-    } catch (error) {
-      console.error('Error fetching user batch:', error.message);
+    });
+    
+    if (usersResponse.data && usersResponse.data.data) {
+      console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
+      if (usersResponse.data.data.length > 0) {
+        console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
+      }
+      allUsers = usersResponse.data.data;
     }
+  } catch (error) {
+    console.error('Error fetching users by login:', error.message);
   }
   
-  // チャンネル情報を取得（ゲーム名を含む）
+  // ユーザーIDからのチャンネル情報取得
   console.log('Fetching channel information');
+  const userIds = streams.map(stream => stream.user_id);
+  
   const channelBatches = [];
   for (let i = 0; i < userIds.length; i += 100) {
     channelBatches.push(userIds.slice(i, i + 100));
@@ -196,28 +169,30 @@ try {
     channelsMap[channel.broadcaster_id] = channel;
   });
   
- // データを整形する部分を変更
-const formattedStreams = streams.map(stream => {
-  const user = usersMap[stream.user_id] || {};
-  const channel = channelsMap[stream.user_id] || {};
-  
-  // Twitchのストリームサムネイルから直接ユーザーアイコンを取得する方法
-  const userProfileImage = `https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png`;
-  
-  return {
-    id: stream.id,
-    user_id: stream.user_id,
-    user_name: stream.user_name,
-    user_login: stream.user_login,
-    game_id: stream.game_id,
-    game_name: stream.title || channel.game_name || 'Unknown Game',
-    title: stream.title,
-    viewer_count: stream.viewer_count,
-    language: stream.language,
-    profile_image_url: userProfileImage,
-    tags: stream.tags || []
-  };
-});
+  // データを整形
+  const formattedStreams = streams.map(stream => {
+    // ユーザー情報を検索 - まずloginで検索
+    const user = allUsers.find(u => u.login === stream.user_login) || {};
+    const channel = channelsMap[stream.user_id] || {};
+    
+    // プロフィール画像URLの設定
+    const profileImageUrl = user.profile_image_url || 
+                          `https://robohash.org/${stream.user_login}?set=set3&bgset=bg1&size=40x40`;
+    
+    return {
+      id: stream.id,
+      user_id: stream.user_id,
+      user_name: stream.user_name,
+      user_login: stream.user_login,
+      game_id: stream.game_id,
+      game_name: stream.title || channel.game_name || 'Unknown Game',
+      title: stream.title,
+      viewer_count: stream.viewer_count,
+      language: stream.language,
+      profile_image_url: profileImageUrl,
+      tags: stream.tags || []
+    };
+  });
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
