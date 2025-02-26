@@ -66,6 +66,7 @@ async function fetchTwitchStreams(token) {
       },
       params: {
         first: 100
+        language: 'ja' // 日本語配信のみをフィルタリング
       }
     });
     
