@@ -65,10 +65,12 @@ async function fetchTwitchStreams(token) {
         'Authorization': `Bearer ${token}`
       },
       params: {
-        first: 100
+        first: 100,
         language: 'ja' // 日本語配信のみをフィルタリング
       }
     });
+    
+    // 以下は同じ...
     
     if (!streamsResponse.data || !streamsResponse.data.data) {
       throw new Error('Invalid streams response');
