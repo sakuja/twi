@@ -66,7 +66,6 @@ async function fetchTwitchStreams(token) {
       },
       params: {
         first: 100
-        // language: 'ja' の行を削除またはコメントアウト
       }
     });
     
@@ -77,34 +76,34 @@ async function fetchTwitchStreams(token) {
     const streams = streamsResponse.data.data;
     console.log(`Retrieved ${streams.length} streams`);
     
-    // 日本語ストリームをフィルタリング（APIでフィルタリングせず、取得後に処理）
+    // 日本語ストリームをフィルタリング
     const japaneseStreams = streams.filter(stream => stream.language === 'ja');
     console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
     
     if (japaneseStreams.length === 0) {
       // 日本語ストリームがない場合は全ストリームを使用
       console.log('No Japanese streams found, using all streams');
-      return processStreams(streams, token);
+      return await processStreams(streams, token);
     }
     
-    return processStreams(japaneseStreams, token);
+    return await processStreams(japaneseStreams, token);
   } catch (error) {
     console.error('Error in fetchTwitchStreams:', error.message);
     throw error;
   }
 }
 
-// ストリーム情報を処理する関数（ユーザーとゲーム情報を取得）
+// ストリーム情報を処理する関数
 async function processStreams(streams, token) {
   if (streams.length === 0) {
     return [];
   }
   
-  // ユーザー情報を取得 - 一度に最大100個までのIDを処理
+  // ユーザー情報を取得
   console.log('Fetching user information');
   const userIds = streams.map(stream => stream.user_id);
   
-  // ユーザーIDのバッチ処理（100個ずつに分割）
+  // ユーザーIDのバッチ処理
   const userBatches = [];
   for (let i = 0; i < userIds.length; i += 100) {
     userBatches.push(userIds.slice(i, i + 100));
@@ -128,41 +127,35 @@ async function processStreams(streams, token) {
       }
     } catch (error) {
       console.error('Error fetching user batch:', error.message);
-      // エラーが発生しても処理を続行
     }
   }
   
-// ゲーム情報を取得 - 同様にバッチ処理
-  console.log('Fetching game information');
-  const gameIds = [...new Set(streams.map(stream => stream.game_id).filter(id => id))];
-  
-  // ゲームIDのバッチ処理
-  const gameBatches = [];
-  for (let i = 0; i < gameIds.length; i += 100) {
-    gameBatches.push(gameIds.slice(i, i + 100));
+  // チャンネル情報を取得（ゲーム名を含む）
+  console.log('Fetching channel information');
+  const channelBatches = [];
+  for (let i = 0; i < userIds.length; i += 100) {
+    channelBatches.push(userIds.slice(i, i + 100));
   }
   
-  let allGames = [];
-  for (const batch of gameBatches) {
-    if (batch.length === 0) continue;
-    
+  let allChannels = [];
+  for (const batch of channelBatches) {
     try {
-      const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
+      const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
         },
         params: {
-          id: batch.join(',')
+          broadcaster_id: batch.join(',')
         }
       });
       
-      if (gamesResponse.data && gamesResponse.data.data) {
-        allGames = [...allGames, ...gamesResponse.data.data];
+      if (channelsResponse.data && channelsResponse.data.data) {
+        console.log(`Retrieved ${channelsResponse.data.data.length} channel info`);
+        allChannels = [...allChannels, ...channelsResponse.data.data];
       }
     } catch (error) {
-      console.error('Error fetching game batch:', error.message);
-      // エラーが発生しても処理を続行
+      console.error('Error fetching channel batch:', error.message);
     }
   }
   
@@ -172,15 +165,17 @@ async function processStreams(streams, token) {
     usersMap[user.id] = user;
   });
   
-  const gamesMap = {};
-  allGames.forEach(game => {
-    gamesMap[game.id] = game;
+  const channelsMap = {};
+  allChannels.forEach(channel => {
+    channelsMap[channel.broadcaster_id] = channel;
   });
+  
+  console.log(`Created maps with ${Object.keys(usersMap).length} users and ${Object.keys(channelsMap).length} channels`);
   
   // データを整形
   const formattedStreams = streams.map(stream => {
     const user = usersMap[stream.user_id] || {};
-    const game = gamesMap[stream.game_id] || {};
+    const channel = channelsMap[stream.user_id] || {};
     
     return {
       id: stream.id,
@@ -188,7 +183,7 @@ async function processStreams(streams, token) {
       user_name: stream.user_name,
       user_login: stream.user_login,
       game_id: stream.game_id,
-      game_name: game.name || 'Unknown Game',
+      game_name: channel.game_name || 'Unknown Game',
       title: stream.title,
       viewer_count: stream.viewer_count,
       language: stream.language,
@@ -197,7 +192,6 @@ async function processStreams(streams, token) {
     };
   });
   
-  
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
   console.log('Successfully processed stream data');
@@ -205,7 +199,7 @@ async function processStreams(streams, token) {
   return formattedStreams;
 }
 
-// APIハンドラー - 重要: このエクスポートがなければエラーになります
+// APIハンドラー
 module.exports = async (req, res) => {
   try {
     // CORS設定
