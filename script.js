@@ -32,17 +32,13 @@ function updateTable(data) {
         // 完全に新しい方法でHTMLを構築
         const twitchUrl = `https://twitch.tv/${stream.user_login}`;
         
-       const html = `
+     const html = `
     <tr class="${index < 3 ? 'top-rank' : ''}">
         <td>${index + 1}</td>
         <td>
             <a href="${twitchUrl}" target="_blank" class="streamer-link">
                 <div class="streamer-cell">
-                    <img src="${stream.thumbnail_url}"
-                         alt=""
-                         class="streamer-thumbnail"
-                         onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.png';"
-                         onError="this.onerror=null; this.src='https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png';">
+                    <div class="avatar-placeholder"></div>
                     <span>${stream.user_name}</span>
                 </div>
             </a>
