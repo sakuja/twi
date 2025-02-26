@@ -4,8 +4,8 @@ header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
 // Twitch API認証情報
-$clientId = '0q0t4u78p93nih8z1l2dek9fglpz23';
-$clientSecret = '2wevk9sshtktaq2wkf09ao2j2em1lh';
+$clientId = 'kp6xg2u6cwj3jd3pob7210pbkyg02d';
+$clientSecret = 'npyxwl8rpwxx3jyj55zvos2bhknm4x';
 
 // セッションを開始してトークンを保存
 session_start();
