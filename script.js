@@ -94,35 +94,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // APIからデータを取得する
-    async function fetchData() {
-        try {
-            // ローディング表示、エラーとテーブルを非表示
-            if (loadingElement) loadingElement.style.display = 'block';
-            if (errorElement) errorElement.style.display = 'none';
-            if (rankingsTable) rankingsTable.style.display = 'none';
-            
-            console.log('Fetching data from API...');
-            
-            // APIからデータを取得
-            const response = await fetch('/api/streams');
-            
-            // レスポンスのステータスをチェック
-            if (!response.ok) {
-                throw new Error(`APIエラー: ${response.status}`);
-            }
-            
-            // JSONデータを解析
-            const data = await response.json();
-            console.log('Received data from API:', data);
-            
-            // テーブルを更新
-            updateTable(data);
-            
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            showError(error.message);
+// APIからデータを取得する関数
+async function fetchData() {
+    try {
+        // ローディング表示、エラーとテーブルを非表示
+        if (loadingElement) loadingElement.style.display = 'block';
+        if (errorElement) errorElement.style.display = 'none';
+        if (rankingsTable) rankingsTable.style.display = 'none';
+        
+        console.log('Fetching data from API...');
+        
+        // APIからデータを取得
+        const response = await fetch('/api/streams');
+        
+        // レスポンスのステータスをチェック
+        if (!response.ok) {
+            throw new Error(`APIエラー: ${response.status}`);
         }
+        
+        // JSONデータを解析
+        const responseData = await response.json();
+        console.log('Received data from API:', responseData);
+        
+        // 新しいAPIレスポンス形式に対応
+        let data;
+        if (responseData.demoData) {
+            // 新しい形式：demoDataプロパティから取得
+            data = responseData.demoData;
+        } else if (Array.isArray(responseData)) {
+            // 古い形式：直接配列
+            data = responseData;
+        } else {
+            throw new Error('不正なデータ形式を受信しました');
+        }
+        
+        // テーブルを更新
+        updateTable(data);
+        
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        showError(error.message);
     }
+}
     
     // 初回データ取得
     fetchData();
