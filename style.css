@@ -165,3 +165,11 @@ footer {
     display: flex;
     align-items: center;
 }
+.avatar-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    border: 2px solid #6441a5;
+}
