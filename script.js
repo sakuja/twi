@@ -40,23 +40,29 @@ function updateTable(data) {
             row.classList.add('top-rank');
         }
         
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
-                <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                    <div class="streamer-cell">
-                        <img src="${initialImage}" class="streamer-thumbnail" alt="">
-                        <span>${stream.user_name}</span>
-                    </div>
-                </a>
-            </td>
-            <td>
-                <a href="${twitchUrl}" target="_blank" class="game-link">
-                    ${stream.game_name || 'No Title'}
-                </a>
-            </td>
-            <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-        `;
+     // 行の内容を作成
+row.innerHTML = `
+    <td>${index + 1}</td>
+    <td>
+        <a href="${twitchUrl}" target="_blank" class="streamer-link">
+            <div class="streamer-cell">
+                <img 
+                    src="${stream.profile_image_url}"
+                    alt=""
+                    class="streamer-thumbnail"
+                    onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';"
+                >
+                <span>${stream.user_name}</span>
+            </div>
+        </a>
+    </td>
+    <td>
+        <a href="${twitchUrl}" target="_blank" class="game-link">
+            ${stream.game_name || 'No Title'}
+        </a>
+    </td>
+    <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+`;
         
         rankingsBody.appendChild(row);
     });
