@@ -112,29 +112,32 @@ streams.forEach(stream => {
 });
   
   // 配信者のログイン名でAPI呼び出し
-  let allUsers = [];
+
+
+let allUsers = [];
+for (const login of userLogins) {
   try {
-    // ログイン名を使ったユーザー情報の取得
-    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+    const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID,
         'Authorization': `Bearer ${token}`
       },
-      params: {
-        login: userLogins.join(',')
-      }
+      params: { login }
     });
-    
-    if (usersResponse.data && usersResponse.data.data) {
-      console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
-      if (usersResponse.data.data.length > 0) {
-        console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
-      }
-      allUsers = usersResponse.data.data;
+
+    if (userResponse.data && userResponse.data.data) {
+      allUsers.push(...userResponse.data.data);
     }
   } catch (error) {
-    console.error('Error fetching users by login:', error.message);
+    console.error(`Error fetching user: ${login}`, error.message);
   }
+}
+
+
+
+
+  
+  
   
   // ユーザーIDからのチャンネル情報取得
   console.log('Fetching channel information');
