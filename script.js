@@ -29,65 +29,31 @@ function updateTable(data) {
     
     // データをテーブルに挿入
     data.forEach((stream, index) => {
-        const row = document.createElement('tr');
-        
-        // 上位3位にクラスを追加
-        if (index < 3) {
-            row.classList.add('top-rank');
-        }
-        
-        // Twitchの配信URLを作成
+        // 完全に新しい方法でHTMLを構築
         const twitchUrl = `https://twitch.tv/${stream.user_login}`;
         
-        // ランク列
-        const rankCell = document.createElement('td');
-        rankCell.textContent = index + 1;
+        const html = `
+            <tr class="${index < 3 ? 'top-rank' : ''}">
+                <td>${index + 1}</td>
+                <td>
+                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                        <div class="streamer-cell">
+                            <img src="${stream.thumbnail_url || '/placeholder.jpg'}" alt="" class="streamer-thumbnail">
+                            <span>${stream.user_name}</span>
+                        </div>
+                    </a>
+                </td>
+                <td>
+                    <a href="${twitchUrl}" target="_blank" class="game-link">
+                        ${stream.game_name || 'No Title'}
+                    </a>
+                </td>
+                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+            </tr>
+        `;
         
-        // ストリーマー列
-        const streamerCell = document.createElement('td');
-        const streamerDiv = document.createElement('div');
-        streamerDiv.className = 'streamer-cell';
-        
-        const streamerLink = document.createElement('a');
-        streamerLink.href = twitchUrl;
-        streamerLink.target = '_blank';
-        streamerLink.className = 'streamer-link';
-        
-        const thumbnail = document.createElement('img');
-        thumbnail.src = stream.thumbnail_url || '/placeholder.jpg';
-        thumbnail.alt = stream.user_name;
-        thumbnail.className = 'streamer-thumbnail';
-        
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = stream.user_name;
-        
-        streamerLink.appendChild(thumbnail);
-        streamerLink.appendChild(nameSpan);
-        streamerDiv.appendChild(streamerLink);
-        streamerCell.appendChild(streamerDiv);
-        
-        // ゲーム列
-        const gameCell = document.createElement('td');
-        const gameLink = document.createElement('a');
-        gameLink.href = twitchUrl;
-        gameLink.target = '_blank';
-        gameLink.className = 'game-link';
-        gameLink.textContent = stream.game_name || 'N/A';
-        gameCell.appendChild(gameLink);
-        
-        // 視聴者数列
-        const viewerCell = document.createElement('td');
-        viewerCell.className = 'viewer-count';
-        viewerCell.textContent = formatNumber(stream.viewer_count);
-        
-        // 行に各セルを追加
-        row.appendChild(rankCell);
-        row.appendChild(streamerCell);
-        row.appendChild(gameCell);
-        row.appendChild(viewerCell);
-        
-        // テーブルに行を追加
-        rankingsBody.appendChild(row);
+        // 新しい行をテーブルに追加
+        rankingsBody.insertAdjacentHTML('beforeend', html);
     });
     
     // ローディングを非表示、テーブルを表示
@@ -96,8 +62,6 @@ function updateTable(data) {
     
     // 更新時刻を設定
     updateCurrentTime();
-    
-    console.log('Table updated successfully');
 }
     
     // エラー表示関数
