@@ -177,7 +177,11 @@ const formattedStreams = streams.map(stream => {
   const user = usersMap[stream.user_id] || {};
   const channel = channelsMap[stream.user_id] || {};
   
-  // ストリームのタイトルをゲーム名として使用
+  // デバッグ用
+  if (!user.profile_image_url) {
+    console.log(`User ${stream.user_name} has no profile image URL`);
+  }
+  
   return {
     id: stream.id,
     user_id: stream.user_id,
@@ -188,7 +192,7 @@ const formattedStreams = streams.map(stream => {
     title: stream.title,
     viewer_count: stream.viewer_count,
     language: stream.language,
-    thumbnail_url: user.profile_image_url || '',
+    thumbnail_url: user.profile_image_url || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png',
     tags: stream.tags || []
   };
 });
