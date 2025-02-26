@@ -169,30 +169,33 @@ async function processStreams(streams, token) {
     channelsMap[channel.broadcaster_id] = channel;
   });
   
-  // データを整形
-  const formattedStreams = streams.map(stream => {
-    // ユーザー情報を検索 - まずloginで検索
-    const user = allUsers.find(u => u.login === stream.user_login) || {};
-    const channel = channelsMap[stream.user_id] || {};
-    
-    // プロフィール画像URLの設定
-    const profileImageUrl = user.profile_image_url || 
-                          `https://robohash.org/${stream.user_login}?set=set3&bgset=bg1&size=40x40`;
-    
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: stream.title || channel.game_name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      profile_image_url: profileImageUrl,
-      tags: stream.tags || []
-    };
-  });
+ // データを整形
+const formattedStreams = streams.map(stream => {
+  // ユーザー情報を検索 - まずloginで検索
+  const user = allUsers.find(u => u.login === stream.user_login) || {};
+  const channel = channelsMap[stream.user_id] || {};
+  
+  // デバッグ情報
+  console.log(`Stream: ${stream.user_name}, User data:`, user);
+  
+  // プロフィール画像URLの設定 - userオブジェクトから直接profile_image_urlを取得
+  const profileImageUrl = user.profile_image_url || 
+                        `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+  
+  return {
+    id: stream.id,
+    user_id: stream.user_id,
+    user_name: stream.user_name,
+    user_login: stream.user_login,
+    game_id: stream.game_id,
+    game_name: stream.title || channel.game_name || 'Unknown Game',
+    title: stream.title,
+    viewer_count: stream.viewer_count,
+    language: stream.language,
+    profile_image_url: profileImageUrl,
+    tags: stream.tags || []
+  };
+});
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
