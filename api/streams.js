@@ -99,77 +99,37 @@ async function processStreams(streams, token) {
     return [];
   }
   
-// ユーザー情報を取得
-console.log('Fetching user information');
-const userIds = streams.map(stream => stream.user_id);
-console.log(`User IDs to fetch: ${userIds.join(',')}`);
-
-// APIリクエストを単一ユーザーごとに行ってみる
-let allUsers = [];
-for (const userId of userIds) {
-  try {
-    const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
-      headers: {
-        'Client-ID': process.env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${token}`
-      },
-      params: {
-        id: userId
-      }
-    });
-
-    if (userResponse.data && userResponse.data.data && userResponse.data.data.length > 0) {
-      console.log(`Retrieved user: ${userResponse.data.data[0].login}, profile image: ${userResponse.data.data[0].profile_image_url}`);
-      allUsers.push(userResponse.data.data[0]);
-    }
-  } catch (error) {
-    console.error(`Error fetching user ${userId}:`, error.message);
+  // ユーザー情報を取得
+  console.log('Fetching user information');
+  const userIds = streams.map(stream => stream.user_id);
+  
+  // ユーザーIDのバッチ処理
+  const userBatches = [];
+  for (let i = 0; i < userIds.length; i += 100) {
+    userBatches.push(userIds.slice(i, i + 100));
   }
-}
-
-
-// ユーザーIDのバッチ処理
-const userBatches = [];
-for (let i = 0; i < userIds.length; i += 100) {
-  userBatches.push(userIds.slice(i, i + 100));
-}
-
-let allUsers = [];
-for (const batch of userBatches) {
-  try {
-    console.log(`Fetching user batch with ${batch.length} user IDs`);
-    // リクエストURLとパラメータをログ出力
-    console.log('Request URL:', 'https://api.twitch.tv/helix/users');
-    console.log('Request params:', { id: batch.join(',') });
-    
-    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
-      headers: {
-        'Client-ID': process.env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${token}`
-      },
-      params: {
-        id: batch.join(',')
+  
+  let allUsers = [];
+  for (const batch of userBatches) {
+    try {
+      const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          id: batch.join(',')
+        }
+      });
+      
+      if (usersResponse.data && usersResponse.data.data) {
+        allUsers = [...allUsers, ...usersResponse.data.data];
       }
-    });
-    
-    if (usersResponse.data && usersResponse.data.data) {
-      console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
-      // サンプルユーザーデータをログ出力
-      if (usersResponse.data.data.length > 0) {
-        console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
-      }
-      allUsers = [...allUsers, ...usersResponse.data.data];
-    } else {
-      console.log('No user data returned:', usersResponse.data);
-    }
-  } catch (error) {
-    console.error('Error fetching user batch:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', JSON.stringify(error.response.data));
+    } catch (error) {
+      console.error('Error fetching user batch:', error.message);
     }
   }
-}
+  
   // チャンネル情報を取得（ゲーム名を含む）
   console.log('Fetching channel information');
   const channelBatches = [];
@@ -191,7 +151,6 @@ for (const batch of userBatches) {
       });
       
       if (channelsResponse.data && channelsResponse.data.data) {
-        console.log(`Retrieved ${channelsResponse.data.data.length} channel info`);
         allChannels = [...allChannels, ...channelsResponse.data.data];
       }
     } catch (error) {
@@ -210,30 +169,30 @@ for (const batch of userBatches) {
     channelsMap[channel.broadcaster_id] = channel;
   });
   
-  console.log(`Created maps with ${Object.keys(usersMap).length} users and ${Object.keys(channelsMap).length} channels`);
-  
-// データを整形
-const formattedStreams = streams.map(stream => {
-  const user = usersMap[stream.user_id] || {};
-  const channel = channelsMap[stream.user_id] || {};
-  
-  // ユーザー名からアイコンURLを構築
-  const profileImageUrl = `https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.jpg`;
-  
-  return {
-    id: stream.id,
-    user_id: stream.user_id,
-    user_name: stream.user_name,
-    user_login: stream.user_login,
-    game_id: stream.game_id,
-    game_name: stream.title || channel.game_name || 'Unknown Game',
-    title: stream.title,
-    viewer_count: stream.viewer_count,
-    language: stream.language,
-    profile_image_url: profileImageUrl,
-    tags: stream.tags || []
-  };
-});
+  // データを整形
+  const formattedStreams = streams.map(stream => {
+    const user = usersMap[stream.user_id] || {};
+    const channel = channelsMap[stream.user_id] || {};
+    
+    // ユーザーログイン名からプロフィール画像URLを構築
+    const profileImageUrl = stream.user_login
+      ? `https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.jpg`
+      : null;
+    
+    return {
+      id: stream.id,
+      user_id: stream.user_id,
+      user_name: stream.user_name,
+      user_login: stream.user_login,
+      game_id: stream.game_id,
+      game_name: stream.title || channel.game_name || 'Unknown Game',
+      title: stream.title,
+      viewer_count: stream.viewer_count,
+      language: stream.language,
+      profile_image_url: profileImageUrl || user.profile_image_url,
+      tags: stream.tags || []
+    };
+  });
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
