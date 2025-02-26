@@ -169,30 +169,28 @@ async function processStreams(streams, token) {
     channelsMap[channel.broadcaster_id] = channel;
   });
   
-  // データを整形
-  const formattedStreams = streams.map(stream => {
-    const user = usersMap[stream.user_id] || {};
-    const channel = channelsMap[stream.user_id] || {};
-    
-    // ユーザーログイン名からプロフィール画像URLを構築
-    const profileImageUrl = stream.user_login
-      ? `https://static-cdn.jtvnw.net/jtv_user_pictures/${stream.user_login}-profile_image-300x300.jpg`
-      : null;
-    
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: stream.title || channel.game_name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      profile_image_url: profileImageUrl || user.profile_image_url,
-      tags: stream.tags || []
-    };
-  });
+ // データを整形する部分を変更
+const formattedStreams = streams.map(stream => {
+  const user = usersMap[stream.user_id] || {};
+  const channel = channelsMap[stream.user_id] || {};
+  
+  // Twitchのストリームサムネイルから直接ユーザーアイコンを取得する方法
+  const userProfileImage = `https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-70x70.png`;
+  
+  return {
+    id: stream.id,
+    user_id: stream.user_id,
+    user_name: stream.user_name,
+    user_login: stream.user_login,
+    game_id: stream.game_id,
+    game_name: stream.title || channel.game_name || 'Unknown Game',
+    title: stream.title,
+    viewer_count: stream.viewer_count,
+    language: stream.language,
+    profile_image_url: userProfileImage,
+    tags: stream.tags || []
+  };
+});
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
