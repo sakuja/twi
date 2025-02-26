@@ -99,37 +99,52 @@ async function processStreams(streams, token) {
     return [];
   }
   
-  // ユーザー情報を取得
-  console.log('Fetching user information');
-  const userIds = streams.map(stream => stream.user_id);
-  
-  // ユーザーIDのバッチ処理
-  const userBatches = [];
-  for (let i = 0; i < userIds.length; i += 100) {
-    userBatches.push(userIds.slice(i, i + 100));
-  }
-  
-  let allUsers = [];
-  for (const batch of userBatches) {
-    try {
-      const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
-        headers: {
-          'Client-ID': process.env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${token}`
-        },
-        params: {
-          id: batch.join(',')
-        }
-      });
-      
-      if (usersResponse.data && usersResponse.data.data) {
-        allUsers = [...allUsers, ...usersResponse.data.data];
+ // ユーザー情報を取得
+console.log('Fetching user information');
+const userIds = streams.map(stream => stream.user_id);
+
+// ユーザーIDのバッチ処理
+const userBatches = [];
+for (let i = 0; i < userIds.length; i += 100) {
+  userBatches.push(userIds.slice(i, i + 100));
+}
+
+let allUsers = [];
+for (const batch of userBatches) {
+  try {
+    console.log(`Fetching user batch with ${batch.length} user IDs`);
+    // リクエストURLとパラメータをログ出力
+    console.log('Request URL:', 'https://api.twitch.tv/helix/users');
+    console.log('Request params:', { id: batch.join(',') });
+    
+    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        id: batch.join(',')
       }
-    } catch (error) {
-      console.error('Error fetching user batch:', error.message);
+    });
+    
+    if (usersResponse.data && usersResponse.data.data) {
+      console.log(`Retrieved ${usersResponse.data.data.length} user profiles`);
+      // サンプルユーザーデータをログ出力
+      if (usersResponse.data.data.length > 0) {
+        console.log('Sample user data:', JSON.stringify(usersResponse.data.data[0]));
+      }
+      allUsers = [...allUsers, ...usersResponse.data.data];
+    } else {
+      console.log('No user data returned:', usersResponse.data);
+    }
+  } catch (error) {
+    console.error('Error fetching user batch:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', JSON.stringify(error.response.data));
     }
   }
-  
+}
   // チャンネル情報を取得（ゲーム名を含む）
   console.log('Fetching channel information');
   const channelBatches = [];
