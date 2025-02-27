@@ -101,13 +101,6 @@ async function processStreams(streams, token) {
   
 
 
-
-
-
-
-
-
-
   // ユーザー情報を取得（ログイン名ベース）
 console.log('Fetching user information by login');
 const userLogins = streams.map(stream => stream.user_login);
@@ -139,6 +132,9 @@ for (const login of userLogins) {
     console.error(`Error fetching user: ${login}`, error.message);
   }
 }
+
+
+
 
   
   
