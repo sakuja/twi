@@ -68,6 +68,12 @@ async function getTwitchToken() {
 
 // バッチでデータを取得するヘルパー関数
 async function fetchBatchData(url, token, batchParam, batchItems, extraParams = {}) {
+  // 空の配列の場合は早期リターン
+  if (!batchItems || batchItems.length === 0) {
+    console.log(`No items to fetch from ${url}`);
+    return [];
+  }
+  
   // バッチ処理用の配列を作成（最大100アイテム）
   const batches = [];
   for (let i = 0; i < batchItems.length; i += 100) {
@@ -90,8 +96,10 @@ async function fetchBatchData(url, token, batchParam, batchItems, extraParams = 
         params
       });
       
-      if (response.data && response.data.data) {
+      if (response.data && Array.isArray(response.data.data)) {
         allResults = [...allResults, ...response.data.data];
+      } else {
+        console.warn(`Response from ${url} does not contain array data:`, response.data);
       }
     } catch (error) {
       console.error(`Error fetching batch from ${url}:`, error.message);
@@ -216,19 +224,37 @@ async function processStreams(streams, token) {
   
   // マッピング用のオブジェクトを作成
   const usersMap = {};
-  allUsers.forEach(user => {
-    usersMap[user.id] = user;
-  });
+  if (Array.isArray(allUsers)) {
+    allUsers.forEach(user => {
+      if (user && user.id) {
+        usersMap[user.id] = user;
+      }
+    });
+  } else {
+    console.warn('allUsers is not an array:', allUsers);
+  }
   
   const channelsMap = {};
-  allChannels.forEach(channel => {
-    channelsMap[channel.broadcaster_id] = channel;
-  });
+  if (Array.isArray(allChannels)) {
+    allChannels.forEach(channel => {
+      if (channel && channel.broadcaster_id) {
+        channelsMap[channel.broadcaster_id] = channel;
+      }
+    });
+  } else {
+    console.warn('allChannels is not an array:', allChannels);
+  }
   
   const gamesMap = {};
-  allGames.forEach(game => {
-    gamesMap[game.id] = game;
-  });
+  if (Array.isArray(allGames)) {
+    allGames.forEach(game => {
+      if (game && game.id) {
+        gamesMap[game.id] = game;
+      }
+    });
+  } else {
+    console.warn('allGames is not an array:', allGames);
+  }
   
   // データを整形
   const formattedStreams = streams.map(stream => {
