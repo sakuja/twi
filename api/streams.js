@@ -101,37 +101,31 @@ async function processStreams(streams, token) {
   
 
 
-  // ユーザー情報を取得（ログイン名ベース）
-console.log('Fetching user information by login');
-const userLogins = streams.map(stream => stream.user_login);
-
-// ログイン名とユーザーIDのマッピングをログ出力
-console.log('Mapping logins to user IDs:');
-streams.forEach(stream => {
-  console.log(`Login: ${stream.user_login}, ID: ${stream.user_id}, Name: ${stream.user_name}`);
-});
-  
-  // 配信者のログイン名でAPI呼び出し
-
+ console.log('Fetching user information by batch');
+const userBatches = [];
+for (let i = 0; i < userLogins.length; i += 100) {
+  userBatches.push(userLogins.slice(i, i + 100));
+}
 
 let allUsers = [];
-for (const login of userLogins) {
+for (const batch of userBatches) {
   try {
     const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID,
         'Authorization': `Bearer ${token}`
       },
-      params: { login }
+      params: { login: batch.join(',') }
     });
 
     if (userResponse.data && userResponse.data.data) {
       allUsers.push(...userResponse.data.data);
     }
   } catch (error) {
-    console.error(`Error fetching user: ${login}`, error.message);
+    console.error('Error fetching user batch:', error.message);
   }
 }
+
 
 
 
