@@ -62,7 +62,7 @@ async function fetchTwitchStreams(token) {
     const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${token}`
+        'Authorization': Bearer ${token}
       },
       params: {
         first: 100
@@ -74,11 +74,11 @@ async function fetchTwitchStreams(token) {
     }
     
     const streams = streamsResponse.data.data;
-    console.log(`Retrieved ${streams.length} streams`);
+    console.log(Retrieved ${streams.length} streams);
     
     // 日本語ストリームをフィルタリング
     const japaneseStreams = streams.filter(stream => stream.language === 'ja');
-    console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
+    console.log(Filtered to ${japaneseStreams.length} Japanese streams);
     
     if (japaneseStreams.length === 0) {
       // 日本語ストリームがない場合は全ストリームを使用
@@ -101,43 +101,38 @@ async function processStreams(streams, token) {
   
 
 
- // ユーザー情報を取得
-console.log('Fetching user information');
+  // ユーザー情報を取得（ログイン名ベース）
+console.log('Fetching user information by login');
 const userLogins = streams.map(stream => stream.user_login);
 
-// ログイン名のバッチを作成（100件単位）
-const loginBatches = [];
-for (let i = 0; i < userLogins.length; i += 100) {
-  loginBatches.push(userLogins.slice(i, i + 100));
-}
+// ログイン名とユーザーIDのマッピングをログ出力
+console.log('Mapping logins to user IDs:');
+streams.forEach(stream => {
+  console.log(Login: ${stream.user_login}, ID: ${stream.user_id}, Name: ${stream.user_name});
+});
+  
+  // 配信者のログイン名でAPI呼び出し
+
 
 let allUsers = [];
-for (const batch of loginBatches) {
+for (const login of userLogins) {
   try {
-    console.log(`Fetching user batch with ${batch.length} logins`);
-    const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+    const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${token}`
+        'Authorization': Bearer ${token}
       },
-      params: {
-        login: batch.join(',')
-      }
+      params: { login }
     });
-    
-    if (usersResponse.data && usersResponse.data.data) {
-      console.log(`Retrieved ${usersResponse.data.data.length} user profiles in batch`);
-      allUsers = [...allUsers, ...usersResponse.data.data];
+
+    if (userResponse.data && userResponse.data.data) {
+      allUsers.push(...userResponse.data.data);
     }
   } catch (error) {
-    console.error(`Error fetching users batch: ${error.message}`);
-    if (error.response) {
-      console.error(`Status: ${error.response.status}, Data:`, error.response.data);
-    }
+    console.error(Error fetching user: ${login}, error.message);
   }
 }
 
-console.log(`Total user profiles retrieved: ${allUsers.length}`);
 
 
 
@@ -159,7 +154,7 @@ console.log(`Total user profiles retrieved: ${allUsers.length}`);
       const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         },
         params: {
           broadcaster_id: batch.join(',')
@@ -192,11 +187,11 @@ const formattedStreams = streams.map(stream => {
   const channel = channelsMap[stream.user_id] || {};
   
   // デバッグ情報
-  console.log(`Stream: ${stream.user_name}, User data:`, user);
+  console.log(Stream: ${stream.user_name}, User data:, user);
   
   // プロフィール画像URLの設定 - userオブジェクトから直接profile_image_urlを取得
   const profileImageUrl = user.profile_image_url || 
-                        `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+                        https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()};
   
   return {
     id: stream.id,
