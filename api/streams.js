@@ -152,7 +152,7 @@ async function processStreams(streams, token) {
   let allChannels = [];
   for (const batch of channelBatches) {
     try {
-      const channelsResponse = await axios.get('https://api.twitch.tv/helix/users', {
+      const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
@@ -174,7 +174,14 @@ async function processStreams(streams, token) {
   const usersMap = {};
   allUsers.forEach(user => {
     usersMap[user.id] = user;
+    // ログイン名でもマッピング
+    if (user.login) {
+      usersMap[user.login] = user;
+    }
   });
+  
+  // ユーザーデータマッピングのデバッグ
+  console.log(`Created user map with ${Object.keys(usersMap).length} entries`);
   
   const channelsMap = {};
   allChannels.forEach(channel => {
@@ -183,16 +190,27 @@ async function processStreams(streams, token) {
   
   // データを整形
   const formattedStreams = streams.map(stream => {
-    // ユーザー情報を検索 - まずloginで検索
-    const user = allUsers.find(u => u.login === stream.user_login) || {};
+    // ユーザー情報を検索 - まずloginで検索して、次にIDで検索
+    const user = allUsers.find(u => u.login === stream.user_login) || 
+                 allUsers.find(u => u.id === stream.user_id) || {};
     const channel = channelsMap[stream.user_id] || {};
     
     // デバッグ情報
     console.log(`Stream: ${stream.user_name}, User data:`, user);
     
-    // プロフィール画像URLの設定 - userオブジェクトから直接profile_image_urlを取得
-    const profileImageUrl = user.profile_image_url || 
-                         `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+    // プロフィール画像URLの設定 - 複数の取得方法を試す
+    let profileImageUrl = null;
+    
+    // 方法1: userオブジェクトから直接取得
+    if (user && user.profile_image_url) {
+      profileImageUrl = user.profile_image_url;
+      console.log(`Using profile image from user object: ${profileImageUrl}`);
+    } 
+    // 方法2: プレースホルダー画像を使用
+    else {
+      profileImageUrl = `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+      console.log(`Using placeholder image: ${profileImageUrl}`);
+    }
     
     return {
       id: stream.id,
@@ -205,6 +223,7 @@ async function processStreams(streams, token) {
       viewer_count: stream.viewer_count,
       language: stream.language,
       profile_image_url: profileImageUrl,
+      thumbnail_url: profileImageUrl, // 元のコードで使われていた可能性のあるプロパティも追加
       tags: stream.tags || []
     };
   });
