@@ -7,6 +7,11 @@ let cachedData = null;
 let cacheTime = null;
 const CACHE_TTL = 5 * 60 * 1000; // 5分間のキャッシュ
 
+// 安全な配列操作用ヘルパー関数
+function safeArray(obj) {
+  return Array.isArray(obj) ? obj : [];
+}
+
 // デモデータを返す関数
 function getDemoData() {
   console.log('Returning demo data');
@@ -69,7 +74,7 @@ async function getTwitchToken() {
 // バッチでデータを取得するヘルパー関数
 async function fetchBatchData(url, token, batchParam, batchItems, extraParams = {}) {
   // 空の配列の場合は早期リターン
-  if (!batchItems || batchItems.length === 0) {
+  if (!batchItems || !Array.isArray(batchItems) || batchItems.length === 0) {
     console.log(`No items to fetch from ${url}`);
     return [];
   }
@@ -84,9 +89,13 @@ async function fetchBatchData(url, token, batchParam, batchItems, extraParams = 
   for (const batch of batches) {
     try {
       const params = {
-        ...extraParams,
-        [batchParam]: batch.join(',')
+        ...extraParams
       };
+      
+      // batchParam が存在する場合のみ追加
+      if (batch.length > 0) {
+        params[batchParam] = batch.join(',');
+      }
       
       const response = await axios.get(url, {
         headers: {
@@ -96,16 +105,26 @@ async function fetchBatchData(url, token, batchParam, batchItems, extraParams = 
         params
       });
       
-      if (response.data && Array.isArray(response.data.data)) {
+      // レスポンスの構造をログ出力（デバッグ用）
+      console.log(`Response structure from ${url}:`, {
+        hasData: !!response.data,
+        dataType: response.data ? typeof response.data : 'undefined',
+        hasDataArray: response.data && Array.isArray(response.data.data),
+        dataArrayLength: response.data && Array.isArray(response.data.data) ? response.data.data.length : 0
+      });
+      
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
         allResults = [...allResults, ...response.data.data];
       } else {
-        console.warn(`Response from ${url} does not contain array data:`, response.data);
+        console.warn(`Response from ${url} does not contain valid data array:`, 
+          typeof response.data === 'object' ? JSON.stringify(response.data).substring(0, 200) : response.data);
       }
     } catch (error) {
       console.error(`Error fetching batch from ${url}:`, error.message);
       if (error.response) {
         console.error('Response status:', error.response.status);
-        console.error('Response data:', JSON.stringify(error.response.data));
+        console.error('Response data:', 
+          typeof error.response.data === 'object' ? JSON.stringify(error.response.data).substring(0, 200) : error.response.data);
       }
     }
   }
@@ -138,11 +157,25 @@ async function fetchTwitchStreams(token, maxStreams = 100) {
         params
       });
       
-      if (!streamsResponse.data || !streamsResponse.data.data) {
-        throw new Error('Invalid streams response');
+      if (!streamsResponse.data) {
+        throw new Error('Invalid streams response: no data');
       }
       
+      // レスポンス構造をログに出力（デバッグ用）
+      console.log('Streams response structure:', {
+        hasData: !!streamsResponse.data,
+        hasDataArray: !!streamsResponse.data && Array.isArray(streamsResponse.data.data),
+        dataLength: !!streamsResponse.data && Array.isArray(streamsResponse.data.data) ? streamsResponse.data.data.length : 0
+      });
+      
+      // data配列の存在を確認
       const streams = streamsResponse.data.data;
+      if (!Array.isArray(streams)) {
+        console.warn('streams is not an array:', typeof streams);
+        // 配列でない場合は安全な空配列を使用
+        continue;
+      }
+      
       allStreams = [...allStreams, ...streams];
       
       // 次のページがあるか確認
@@ -161,11 +194,16 @@ async function fetchTwitchStreams(token, maxStreams = 100) {
     
     console.log(`Retrieved ${allStreams.length} streams in total`);
     
+    if (!Array.isArray(allStreams)) {
+      console.error('allStreams is not an array');
+      return [];
+    }
+    
     // 日本語ストリームをフィルタリング
-    const japaneseStreams = allStreams.filter(stream => stream.language === 'ja');
+    const japaneseStreams = allStreams.filter(stream => stream && stream.language === 'ja');
     console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
     
-    if (japaneseStreams.length === 0) {
+    if (!Array.isArray(japaneseStreams) || japaneseStreams.length === 0) {
       // 日本語ストリームがない場合は全ストリームを使用
       console.log('No Japanese streams found, using all streams');
       return await processStreams(allStreams, token);
@@ -181,22 +219,33 @@ async function fetchTwitchStreams(token, maxStreams = 100) {
 // ゲーム情報を取得する関数
 async function fetchGames(gameIds, token) {
   console.log('Fetching game information');
+  if (!Array.isArray(gameIds) || gameIds.length === 0) {
+    console.log('No game IDs to fetch');
+    return [];
+  }
+  // nullやundefinedを除去
+  const validGameIds = gameIds.filter(id => id != null);
   return await fetchBatchData(
     'https://api.twitch.tv/helix/games',
     token,
     'id',
-    gameIds
+    validGameIds
   );
 }
 
 // ストリーム情報を処理する関数
 async function processStreams(streams, token) {
-  if (streams.length === 0) {
+  if (!Array.isArray(streams) || streams.length === 0) {
+    console.log('No streams to process');
     return [];
   }
   
-  // ユーザーIDを抽出
-  const userIds = streams.map(stream => stream.user_id);
+  // ユーザーIDを抽出 (nullやundefinedを除去)
+  const userIds = streams
+    .map(stream => stream && stream.user_id)
+    .filter(id => id != null);
+  
+  console.log(`Extracted ${userIds.length} user IDs from ${streams.length} streams`);
   
   // ユーザー情報をバッチで一度に取得
   console.log('Fetching user information');
@@ -207,6 +256,8 @@ async function processStreams(streams, token) {
     userIds
   );
   
+  console.log(`Retrieved ${Array.isArray(allUsers) ? allUsers.length : 0} users`);
+  
   // チャンネル情報をバッチで一度に取得
   console.log('Fetching channel information');
   const allChannels = await fetchBatchData(
@@ -216,73 +267,88 @@ async function processStreams(streams, token) {
     userIds
   );
   
-  // ゲームIDを抽出（重複を除去）
-  const gameIds = [...new Set(streams.filter(stream => stream.game_id).map(stream => stream.game_id))];
+  console.log(`Retrieved ${Array.isArray(allChannels) ? allChannels.length : 0} channels`);
+  
+  // ゲームIDを抽出（重複を除去、nullやundefinedを除去）
+  const gameIds = [...new Set(
+    streams
+      .filter(stream => stream && stream.game_id)
+      .map(stream => stream.game_id)
+  )];
+  
+  console.log(`Extracted ${gameIds.length} unique game IDs`);
   
   // ゲーム情報を取得
   const allGames = await fetchGames(gameIds, token);
   
+  console.log(`Retrieved ${Array.isArray(allGames) ? allGames.length : 0} games`);
+  
   // マッピング用のオブジェクトを作成
   const usersMap = {};
   if (Array.isArray(allUsers)) {
-    allUsers.forEach(user => {
+    for (const user of allUsers) {
       if (user && user.id) {
         usersMap[user.id] = user;
       }
-    });
-  } else {
-    console.warn('allUsers is not an array:', allUsers);
+    }
   }
   
   const channelsMap = {};
   if (Array.isArray(allChannels)) {
-    allChannels.forEach(channel => {
+    for (const channel of allChannels) {
       if (channel && channel.broadcaster_id) {
         channelsMap[channel.broadcaster_id] = channel;
       }
-    });
-  } else {
-    console.warn('allChannels is not an array:', allChannels);
+    }
   }
   
   const gamesMap = {};
   if (Array.isArray(allGames)) {
-    allGames.forEach(game => {
+    for (const game of allGames) {
       if (game && game.id) {
         gamesMap[game.id] = game;
       }
-    });
-  } else {
-    console.warn('allGames is not an array:', allGames);
+    }
   }
   
+  console.log(`Created maps with ${Object.keys(usersMap).length} users, ${Object.keys(channelsMap).length} channels, and ${Object.keys(gamesMap).length} games`);
+  
   // データを整形
-  const formattedStreams = streams.map(stream => {
-    const user = usersMap[stream.user_id] || {};
-    const channel = channelsMap[stream.user_id] || {};
-    const game = gamesMap[stream.game_id] || {};
-    
-    // プロフィール画像URL
-    const profileImageUrl = user.profile_image_url || 
-      `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
-    
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: game.name || stream.game_name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      profile_image_url: profileImageUrl,
-      tags: stream.tags || []
-    };
-  });
+  const formattedStreams = [];
+  if (Array.isArray(streams)) {
+    for (const stream of streams) {
+      if (!stream) continue;
+      
+      const user = (stream.user_id && usersMap[stream.user_id]) || {};
+      const channel = (stream.user_id && channelsMap[stream.user_id]) || {};
+      const game = (stream.game_id && gamesMap[stream.game_id]) || {};
+      
+      // プロフィール画像URL
+      const profileImageUrl = user.profile_image_url || 
+        `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${
+          stream.user_name ? stream.user_name.charAt(0).toUpperCase() : 'U'
+        }`;
+      
+      formattedStreams.push({
+        id: stream.id || `unknown-${Date.now()}-${Math.random()}`,
+        user_id: stream.user_id || 'unknown',
+        user_name: stream.user_name || 'Unknown User',
+        user_login: stream.user_login || 'unknown_user',
+        game_id: stream.game_id || 'unknown',
+        game_name: (game && game.name) || (stream && stream.game_name) || 'Unknown Game',
+        title: stream.title || 'No Title',
+        viewer_count: stream.viewer_count || 0,
+        language: stream.language || 'unknown',
+        profile_image_url: profileImageUrl,
+        tags: (Array.isArray(stream.tags) ? stream.tags : [])
+      });
+    }
+  }
+  
+  console.log(`Created ${formattedStreams.length} formatted stream objects`);
   
   // 視聴者数でソート
-  formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+  formattedStreams.sort((a, b) => (b.viewer_count || 0) - (a.viewer_count || 0));
   console.log('Successfully processed stream data');
   
   return formattedStreams;
@@ -330,7 +396,7 @@ module.exports = async (req, res) => {
     console.error('Error processing request:', error.message);
     
     // 環境変数エラーの場合
-    if (error.message.includes('Missing required environment variables')) {
+    if (error.message && error.message.includes('Missing required environment variables')) {
       return res.status(500).json({
         error: 'Server configuration error',
         message: 'API credentials not properly configured'
@@ -342,7 +408,7 @@ module.exports = async (req, res) => {
       return res.status(502).json({
         error: 'Twitch API error',
         status: error.response.status,
-        message: error.response.data?.message || error.message,
+        message: error.response.data && error.response.data.message ? error.response.data.message : error.message,
         data: getDemoData()
       });
     }
