@@ -180,11 +180,16 @@ for (const login of userLogins) {
     channelsMap[channel.broadcaster_id] = channel;
   });
   
-// データを整形
+ // データを整形
 const formattedStreams = streams.map(stream => {
+  // ユーザー情報を検索 - まずloginで検索
   const user = allUsers.find(u => u.login === stream.user_login) || {};
-  const game = gamesMap[stream.game_id] || {};
+  const channel = channelsMap[stream.user_id] || {};
   
+  // デバッグ情報
+  console.log(`Stream: ${stream.user_name}, User data:`, user);
+  
+  // プロフィール画像URLの設定 - userオブジェクトから直接profile_image_urlを取得
   const profileImageUrl = user.profile_image_url || 
                         `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
   
@@ -194,7 +199,7 @@ const formattedStreams = streams.map(stream => {
     user_name: stream.user_name,
     user_login: stream.user_login,
     game_id: stream.game_id,
-    game_name: game.name || 'その他',  // ゲーム名を追加
+    game_name: stream.title || channel.game_name || 'Unknown Game',
     title: stream.title,
     viewer_count: stream.viewer_count,
     language: stream.language,
