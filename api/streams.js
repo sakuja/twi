@@ -108,37 +108,37 @@ async function processStreams(streams, token) {
 
 
 
-// ゲーム情報を取得
-console.log('Fetching game information');
-const gameIds = [...new Set(streams.map(stream => stream.game_id).filter(id => id))];
+  // ユーザー情報を取得（ログイン名ベース）
+console.log('Fetching user information by login');
+const userLogins = streams.map(stream => stream.user_login);
 
-let allGames = [];
-for (const gameId of gameIds) {
-  if (!gameId) continue;
+// ログイン名とユーザーIDのマッピングをログ出力
+console.log('Mapping logins to user IDs:');
+streams.forEach(stream => {
+  console.log(`Login: ${stream.user_login}, ID: ${stream.user_id}, Name: ${stream.user_name}`);
+});
   
+  // 配信者のログイン名でAPI呼び出し
+
+
+let allUsers = [];
+for (const login of userLogins) {
   try {
-    const gameResponse = await axios.get('https://api.twitch.tv/helix/games', {
+    const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID,
         'Authorization': `Bearer ${token}`
       },
-      params: { id: gameId }
+      params: { login }
     });
-    
-    if (gameResponse.data && gameResponse.data.data && gameResponse.data.data.length > 0) {
-      allGames.push(...gameResponse.data.data);
+
+    if (userResponse.data && userResponse.data.data) {
+      allUsers.push(...userResponse.data.data);
     }
   } catch (error) {
-    console.error(`Error fetching game: ${gameId}`, error.message);
+    console.error(`Error fetching user: ${login}`, error.message);
   }
 }
-
-// ゲームIDをマッピング
-const gamesMap = {};
-allGames.forEach(game => {
-  gamesMap[game.id] = game;
-});
-  
 
   
   
