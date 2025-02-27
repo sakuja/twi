@@ -152,7 +152,7 @@ async function processStreams(streams, token) {
   let allChannels = [];
   for (const batch of channelBatches) {
     try {
-      const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
+      const channelsResponse = await axios.get('https://api.twitch.tv/helix/users', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
