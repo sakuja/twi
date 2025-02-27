@@ -121,14 +121,21 @@ async function processStreams(streams, token) {
   for (const batch of loginBatches) {
     try {
       console.log(`Fetching batch of ${batch.length} users`);
+      
+      // Twitch API用にクエリパラメータを適切に構築
+      const params = new URLSearchParams();
+      batch.forEach(login => {
+        params.append('login', login);
+      });
+      
+      console.log(`Request params: ${params.toString().substring(0, 100)}...`);
+      
       const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
         },
-        params: { 
-          login: batch.join(',') 
-        }
+        params: params
       });
 
       if (userResponse.data && userResponse.data.data) {
@@ -152,21 +159,38 @@ async function processStreams(streams, token) {
   let allChannels = [];
   for (const batch of channelBatches) {
     try {
+      console.log(`Fetching channel info for batch of ${batch.length} broadcasters`);
+      
+      // Twitch API v5のチャンネル情報取得APIは複数のIDをクエリパラメータとして受け取るには、
+      // "broadcaster_id=123&broadcaster_id=456"のようにする必要がある
+      // つまり batch.join(',') ではなく、個別のパラメータとして送る必要がある
+      
+      // URLにクエリパラメータを構築
+      const params = new URLSearchParams();
+      batch.forEach(id => {
+        params.append('broadcaster_id', id);
+      });
+      
+      console.log(`Request params: ${params.toString().substring(0, 100)}...`);
+      
       const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
         },
-        params: {
-          broadcaster_id: batch.join(',')
-        }
+        params: params
       });
       
       if (channelsResponse.data && channelsResponse.data.data) {
         allChannels = [...allChannels, ...channelsResponse.data.data];
+        console.log(`Retrieved ${channelsResponse.data.data.length} channels in this batch`);
       }
     } catch (error) {
       console.error('Error fetching channel batch:', error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', JSON.stringify(error.response.data));
+      }
     }
   }
   
