@@ -196,10 +196,18 @@ async function processStreams(streams, token) {
         };
     });
 
-    // 視聴者数でソートして上位50件に制限
-    formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-    return formattedStreams.slice(0, 50);
-}
+
+
+// 視聴者数でソート
+formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+
+// 最大50件に制限
+const top50Streams = formattedStreams.slice(0, 50);
+console.log(`Returning top ${top50Streams.length} streams`);
+
+return top50Streams;
+
+
 
 // バルクでゲーム情報を取得する関数
 async function fetchGames(gameIds, token) {
