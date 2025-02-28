@@ -141,14 +141,7 @@ async function processStreams(streams, token) {
   }
   
 
-// 視聴者数でソート
-formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-console.log(`Total streams after sorting: ${formattedStreams.length}`);
 
-// 上位50件のみ返す（新しい配列を作成せず直接返す）
-console.log(`Returning up to 50 streams`);
-
-return formattedStreams.slice(0, 50);
 
 
 // ゲーム情報を取得
