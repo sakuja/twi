@@ -204,3 +204,9 @@ footer {
     color: #9147ff;
     text-decoration: underline;
 }
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .category-column {
+    display: none;
+  }
+}
