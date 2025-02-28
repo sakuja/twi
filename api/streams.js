@@ -141,11 +141,7 @@ async function processStreams(streams, token) {
   }
   
 
-// 最大50件に制限
-const top50Streams = formattedStreams.slice(0, 50);
-console.log(`Returning top ${top50Streams.length} streams`);
 
-return top50Streams;
 
 
 // ゲーム情報を取得
