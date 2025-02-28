@@ -202,12 +202,14 @@ async function processStreams(streams, token) {
 formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
 
 // 最大50件に制限
-const top50Streams = formattedStreams.slice(0, 50);
-console.log(`Returning top ${top50Streams.length} streams`);
+// const top50Streams = formattedStreams.slice(0, 50);
+// console.log(`Returning top ${top50Streams.length} streams`);
 
-return top50Streams;
+// return top50Streams;
 
-
+      // 視聴者数でソートして上位50件に制限
+    formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+    return formattedStreams.slice(0, 50);
 }
 
 
