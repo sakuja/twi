@@ -46,21 +46,20 @@ row.innerHTML = `
     <td>
         <a href="${twitchUrl}" target="_blank" class="streamer-link">
             <div class="streamer-cell">
-                <img 
-                    src="${stream.profile_image_url}"
-                    alt=""
-                    class="streamer-thumbnail"
-                    onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';"
-                >
+                <img src="${stream.profile_image_url}" 
+                     alt="" 
+                     class="streamer-thumbnail"
+                     onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
                 <span>${stream.user_name}</span>
             </div>
         </a>
     </td>
     <td>
         <a href="${twitchUrl}" target="_blank" class="game-link">
-            ${stream.game_name || 'No Title'}
+            ${stream.title || 'No Title'}
         </a>
     </td>
+    <td>${stream.game_name || 'その他'}</td>  <!-- カテゴリ列を追加 -->
     <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
 `;
         
