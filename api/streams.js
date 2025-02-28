@@ -47,7 +47,7 @@ async function getTwitchToken() {
     
     console.log('Successfully obtained new token');
     twitchToken = response.data.access_token;
-    tokenExpiry = Date.now() + (response.data.expires_in * 1000 * 0.9);
+    tokenExpiry = Date.now() + (response.data.expires_in * 1000) - TOKEN_EXPIRY_MARGIN_MS;
     return twitchToken;
   } catch (error) {
     console.error('Token acquisition failed:', error.message);
@@ -108,7 +108,7 @@ async function fetchTwitchStreams(token) {
       
       // APIレート制限を避けるために少し待機
       if (cursor) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); //勝手に変更点 300→1000
       }
       
     } while (cursor);
