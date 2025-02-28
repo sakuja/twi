@@ -41,6 +41,7 @@ function updateTable(data) {
         }
         
      // 行の内容を作成
+// テーブル更新関数内の行生成部分
 row.innerHTML = `
     <td>${index + 1}</td>
     <td>
@@ -59,7 +60,11 @@ row.innerHTML = `
             ${stream.title || 'No Title'}
         </a>
     </td>
-    <td>${stream.game_name || 'その他'}</td>  <!-- カテゴリ列を追加 -->
+    <td>
+        <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
+            ${stream.game_name || 'その他'}
+        </a>
+    </td>
     <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
 `;
         
