@@ -141,7 +141,14 @@ async function processStreams(streams, token) {
   }
   
 
+// 視聴者数でソート
+formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
 
+// 最大50件に制限
+const top50Streams = formattedStreams.slice(0, 50);
+console.log(`Returning top ${top50Streams.length} streams`);
+
+return top50Streams;
 
 
 // ゲーム情報を取得
