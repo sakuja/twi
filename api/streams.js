@@ -108,7 +108,7 @@ async function fetchTwitchStreams(token) {
       
       // APIレート制限を避けるために少し待機
       if (cursor) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
     } while (cursor);
