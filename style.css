@@ -191,22 +191,22 @@ footer {
     color: #9147ff;
     text-decoration: underline;
 }
-/* レスポンシブデザイン */
-@media (max-width: 768px) {
-  .category-column {
-    display: none;
-  }
-}
+
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
-    }
+    }  
+    .category-column {
+    display: none;
+  }
     
     th, td {
         padding: 8px 10px;
     }
-    
+      th:nth-child(3), td:nth-child(3) {
+        display: none; /* モバイルではゲーム列を非表示 */
+    }
   
 }
