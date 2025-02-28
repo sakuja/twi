@@ -55,35 +55,74 @@ async function getTwitchToken() {
   }
 }
 
+
+
+
+
 // Twitchストリームを取得する関数
 async function fetchTwitchStreams(token) {
   try {
     console.log('Fetching streams from Twitch API');
-    const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
-      headers: {
-        'Client-ID': process.env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${token}`
-      },
-      params: {
-        first: 100
+    
+    let allStreams = [];
+    let cursor = null;
+    const MAX_PAGES = 3; // 最大3ページ分取得（1ページ100件なので最大300件）
+    let pageCount = 0;
+    
+    // ページネーションを使って複数ページのデータを取得
+    do {
+      const params = {
+        first: 100 // 1ページあたり最大100件
+      };
+      
+      // 2ページ目以降の取得にはカーソルを使用
+      if (cursor) {
+        params.after = cursor;
       }
-    });
+      
+      const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        },
+        params: params
+      });
+      
+      if (!streamsResponse.data || !streamsResponse.data.data) {
+        throw new Error('Invalid streams response');
+      }
+      
+      const streams = streamsResponse.data.data;
+      console.log(`Retrieved ${streams.length} streams from page ${pageCount + 1}`);
+      
+      allStreams = [...allStreams, ...streams];
+      
+      // ページネーション用の次ページカーソルを取得
+      cursor = streamsResponse.data.pagination?.cursor;
+      pageCount++;
+      
+      // 最大ページ数に達したらループを終了
+      if (pageCount >= MAX_PAGES) {
+        break;
+      }
+      
+      // APIレート制限を避けるために少し待機
+      if (cursor) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      
+    } while (cursor);
     
-    if (!streamsResponse.data || !streamsResponse.data.data) {
-      throw new Error('Invalid streams response');
-    }
-    
-    const streams = streamsResponse.data.data;
-    console.log(`Retrieved ${streams.length} streams`);
+    console.log(`Total streams retrieved: ${allStreams.length}`);
     
     // 日本語ストリームをフィルタリング
-    const japaneseStreams = streams.filter(stream => stream.language === 'ja');
+    const japaneseStreams = allStreams.filter(stream => stream.language === 'ja');
     console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
     
     if (japaneseStreams.length === 0) {
       // 日本語ストリームがない場合は全ストリームを使用
       console.log('No Japanese streams found, using all streams');
-      return await processStreams(streams, token);
+      return await processStreams(allStreams, token);
     }
     
     return await processStreams(japaneseStreams, token);
@@ -93,12 +132,17 @@ async function fetchTwitchStreams(token) {
   }
 }
 
+
+
 // ストリーム情報を処理する関数
 async function processStreams(streams, token) {
   if (streams.length === 0) {
     return [];
   }
   
+
+
+
 
 // ゲーム情報を取得
 console.log('Fetching game information');
