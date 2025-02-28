@@ -5,6 +5,8 @@
     box-sizing: border-box;
 }
 
+
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
@@ -191,4 +193,14 @@ footer {
 .streamer-cell {
     display: flex;
     align-items: center;
+}
+.category-link {
+    color: #6441a5;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.category-link:hover {
+    color: #9147ff;
+    text-decoration: underline;
 }
