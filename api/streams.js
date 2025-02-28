@@ -259,6 +259,8 @@ allGames.forEach(game => {
   
   // データを整形
   const formattedStreams = streams.map(stream => {
+    const game = gamesMap[stream.game_id] || {};
+
     // ユーザー情報を検索 - まずloginで検索して、次にIDで検索
     const user = allUsers.find(u => u.login === stream.user_login) || 
                  allUsers.find(u => u.id === stream.user_id) || {};
@@ -281,21 +283,22 @@ allGames.forEach(game => {
       console.log(`Using placeholder image: ${profileImageUrl}`);
     }
     
-    return {
-      id: stream.id,
-      user_id: stream.user_id,
-      user_name: stream.user_name,
-      user_login: stream.user_login,
-      game_id: stream.game_id,
-      game_name: stream.title || channel.game_name || 'Unknown Game',
-      title: stream.title,
-      viewer_count: stream.viewer_count,
-      language: stream.language,
-      profile_image_url: profileImageUrl,
-      thumbnail_url: profileImageUrl, // 元のコードで使われていた可能性のあるプロパティも追加
-      tags: stream.tags || []
-    };
-  });
+  return {
+    id: stream.id,
+    user_id: stream.user_id,
+    user_name: stream.user_name,
+    user_login: stream.user_login,
+    game_id: stream.game_id,
+    // ゲーム名の取得（優先順位: API取得 > チャンネル情報 > タイトル > 不明）
+    game_name: (game && game.name) || channel.game_name || 'その他',
+    title: stream.title,
+    viewer_count: stream.viewer_count,
+    language: stream.language,
+    profile_image_url: profileImageUrl,
+    thumbnail_url: profileImageUrl,
+    tags: stream.tags || []
+  };
+});
   
   // 視聴者数でソート
   formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
