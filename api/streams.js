@@ -345,10 +345,13 @@ allGames.forEach(game => {
 });
   
   // 視聴者数でソート
-  formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-  console.log('Successfully processed stream data');
-  
-  return formattedStreams;
+// 視聴者数でソート
+formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+console.log(`Total streams after sorting: ${formattedStreams.length}`);
+
+// 上位50件のみ返す
+console.log(`Returning up to 50 streams`);
+return formattedStreams.slice(0, 50);
 }
 
 // APIハンドラー
