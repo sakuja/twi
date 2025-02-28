@@ -208,6 +208,9 @@ console.log(`Returning top ${top50Streams.length} streams`);
 return top50Streams;
 
 
+}
+
+
 
 // バルクでゲーム情報を取得する関数
 async function fetchGames(gameIds, token) {
