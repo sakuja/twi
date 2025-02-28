@@ -347,11 +347,16 @@ allGames.forEach(game => {
   // 視聴者数でソート
 // 視聴者数でソート
 formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-console.log(`Total streams after sorting: ${formattedStreams.length}`);
 
-// 上位50件のみ返す
-console.log(`Returning up to 50 streams`);
-return formattedStreams.slice(0, 50);
+// 最大50件に制限（直接配列を切り詰める）
+if (formattedStreams.length > 50) {
+  console.log(`Limiting results to top 50 (from ${formattedStreams.length} total streams)`);
+  formattedStreams = formattedStreams.slice(0, 50);
+}
+
+console.log('Successfully processed stream data');
+return formattedStreams;
+
 }
 
 // APIハンドラー
