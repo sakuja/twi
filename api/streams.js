@@ -3,7 +3,7 @@ const axios = require('axios');
 // 定数
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5分
 const BATCH_SIZE = 100;
-const MAX_PAGES = 3;
+const MAX_PAGES = 10;
 const TOKEN_EXPIRY_MARGIN_MS = 5 * 1000; // 5秒のマージン
 const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
 
@@ -135,16 +135,21 @@ async function fetchTwitchStreams(token) {
 
             cursor = streamsResponse.data.pagination?.cursor;
             if (!cursor) break; // 次のページがない場合は終了
-
-          // 簡易レートリミット処理は削除 (waitRateLimitReset に置き換え)
-          // await new Promise(resolve => setTimeout(resolve, 300));
         }
 
         console.log(`Total streams retrieved: ${allStreams.length}`);
+        
+        // 言語フィルタリングを調整（日本語ストリームが少ない場合は全ストリームを返す）
         const japaneseStreams = allStreams.filter(stream => stream.language === 'ja');
         console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
 
-        return japaneseStreams.length > 0 ? japaneseStreams : allStreams;
+        // 日本語ストリームが50件未満の場合は、全ストリームから上位を返す
+        if (japaneseStreams.length < 50) {
+            console.log('Not enough Japanese streams, returning mixed language streams');
+            return allStreams;
+        }
+        
+        return japaneseStreams;
 
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message;
@@ -153,6 +158,7 @@ async function fetchTwitchStreams(token) {
         throw new TwitchAPIError(`Error fetching Twitch streams: ${errorMessage}`, statusCode);
     }
 }
+
 
 
 // ストリーム情報を処理する関数 (大幅に簡略化)
