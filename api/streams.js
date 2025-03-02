@@ -221,6 +221,7 @@ async function processStreams(streams, token) {
     // サンプルストリームのstarted_atをログ出力
     if (streams.length > 0) {
         console.log(`Sample stream started_at: ${streams[0].started_at}`);
+        console.log(`Sample stream all fields:`, Object.keys(streams[0]));
     }
 
     // データを整形
@@ -229,7 +230,13 @@ async function processStreams(streams, token) {
         const user = usersMap[stream.user_login] || {};  // user_login で検索
         const channel = channelsMap[stream.user_id] || {};
         
-        const duration = calculateDuration(stream.started_at);
+        // 配信時間を計算（started_atがある場合のみ）
+        const duration = stream.started_at ? calculateDuration(stream.started_at) : '配信時間不明';
+        
+        // 開始時間がない場合はログ出力
+        if (!stream.started_at) {
+            console.warn(`Stream ${stream.user_name} has no started_at field`);
+        }
 
         return {
             id: stream.id,
@@ -244,7 +251,7 @@ async function processStreams(streams, token) {
             profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
             thumbnail_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name), // 同じ画像でOK
             tags: stream.tags || [],
-            started_at: stream.started_at,
+            started_at: stream.started_at || null,
             stream_duration: duration
         };
     });
