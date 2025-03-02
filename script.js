@@ -60,6 +60,20 @@ row.innerHTML = `
             ${stream.title || 'No Title'}
             <span class="stream-duration">${stream.stream_duration || ''}</span>
         </a>
+
+            <div>
+            <h4>最初のストリームデータ:</h4>
+            <pre style={{ 
+              backgroundColor: '#2a2a2a', 
+              padding: '10px', 
+              borderRadius: '5px',
+              overflow: 'auto',
+              fontSize: '12px',
+              maxHeight: '200px'
+            }}>
+              {JSON.stringify(firstStreamData, null, 2)}
+            </pre>
+          </div>
     </td>
     <td>
         <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
