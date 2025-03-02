@@ -223,7 +223,7 @@ async function fetchAndFormatStreams(token) {
       'https://api.twitch.tv/helix/streams',
       {
         language: 'ja',
-        first: 100
+        first: 50
       },
       token
     );
