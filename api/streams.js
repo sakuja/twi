@@ -130,6 +130,14 @@ async function fetchTwitchStreams(token) {
             }
 
             const streams = streamsResponse.data.data;
+            
+            // 最初のストリームデータをログ出力して確認
+            if (pageCount === 0 && streams.length > 0) {
+                // すべてのフィールドを確認するためのログ
+                console.log('Sample stream data fields:', Object.keys(streams[0]));
+                console.log('Sample stream data:', JSON.stringify(streams[0], null, 2));
+            }
+            
             console.log(`Retrieved ${streams.length} Japanese streams from page ${pageCount + 1}`);
             allStreams.push(...streams);
 
@@ -138,6 +146,11 @@ async function fetchTwitchStreams(token) {
         }
 
         console.log(`Total Japanese streams retrieved: ${allStreams.length}`);
+        
+        // started_atフィールドの存在を確認
+        const streamsWithStartedAt = allStreams.filter(stream => stream.started_at).length;
+        console.log(`Streams with started_at field: ${streamsWithStartedAt} out of ${allStreams.length}`);
+        
         return allStreams;
 
     } catch (error) {
@@ -150,17 +163,32 @@ async function fetchTwitchStreams(token) {
 
 // 配信時間を計算する関数
 function calculateDuration(startedAt) {
-    const startTime = new Date(startedAt);
-    const now = new Date();
-    const durationMs = now - startTime;
-    
-    const hours = Math.floor(durationMs / (1000 * 60 * 60));
-    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-        return `${hours}時間${minutes}分`;
-    } else {
-        return `${minutes}分`;
+    try {
+        if (!startedAt) {
+            console.warn('startedAt is undefined or null');
+            return '配信時間不明';
+        }
+        
+        const startTime = new Date(startedAt);
+        if (isNaN(startTime.getTime())) {
+            console.warn(`Invalid date format: ${startedAt}`);
+            return '配信時間不明';
+        }
+        
+        const now = new Date();
+        const durationMs = now - startTime;
+        
+        const hours = Math.floor(durationMs / (1000 * 60 * 60));
+        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (hours > 0) {
+            return `${hours}時間${minutes}分`;
+        } else {
+            return `${minutes}分`;
+        }
+    } catch (error) {
+        console.error('Error calculating duration:', error);
+        return '配信時間不明';
     }
 }
 
@@ -182,12 +210,18 @@ async function processStreams(streams, token) {
     // バルクリクエストでチャンネル情報を取得
     const channelsMap = await fetchChannels(userIds, token);
 
+    // サンプルストリームのstarted_atをログ出力
+    if (streams.length > 0) {
+        console.log(`Sample stream started_at: ${streams[0].started_at}`);
+    }
 
     // データを整形
     const formattedStreams = streams.map(stream => {
         const game = gamesMap[stream.game_id] || {};
         const user = usersMap[stream.user_login] || {};  // user_login で検索
         const channel = channelsMap[stream.user_id] || {};
+        
+        const duration = calculateDuration(stream.started_at);
 
         return {
             id: stream.id,
@@ -203,9 +237,18 @@ async function processStreams(streams, token) {
             thumbnail_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name), // 同じ画像でOK
             tags: stream.tags || [],
             started_at: stream.started_at,
-            stream_duration: calculateDuration(stream.started_at)
+            stream_duration: duration
         };
     });
+
+    // 最初の処理済みストリームをログ出力
+    if (formattedStreams.length > 0) {
+        console.log('First formatted stream:', {
+            user_name: formattedStreams[0].user_name,
+            started_at: formattedStreams[0].started_at,
+            stream_duration: formattedStreams[0].stream_duration
+        });
+    }
 
     // 視聴者数でソートして上位50件に制限
     formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
@@ -318,11 +361,11 @@ module.exports = async (req, res) => {
 
     console.log('API request received');
     try {
-        // キャッシュチェック
-        if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
-            console.log('Using cached data');
-            return res.status(200).json(cachedData);
-        }
+        // キャッシュを一時的に無効化（デバッグのため）
+        // if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
+        //     console.log('Using cached data');
+        //     return res.status(200).json(cachedData);
+        // }
 
         // 新しいデータを取得
         console.log('Getting fresh data from Twitch API');
