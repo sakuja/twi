@@ -5,21 +5,32 @@ import StreamCard from '../components/StreamCard';
 export default function Home() {
   const [streams, setStreams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [firstStreamData, setFirstStreamData] = useState(null);
 
   useEffect(() => {
     const fetchStreams = async () => {
       try {
+        console.log('Fetching streams from API...');
         const response = await fetch('/api/streams');
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Fetched streams:', data.length);
-          console.log('First stream example:', data[0]);
-          setStreams(data);
-        } else {
-          console.error('API error:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log(`Fetched ${data.length} streams from API`);
+        
+        if (data.length > 0) {
+          console.log('First stream from API:', data[0]);
+          setFirstStreamData(data[0]);
+        }
+        
+        setStreams(data);
+        setError(null);
       } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Error fetching streams:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -58,30 +69,45 @@ export default function Home() {
         <StreamCard stream={dummyStream} />
       </div>
 
+      {/* デバッグ情報 */}
+      <div style={{ marginBottom: '20px', border: '1px solid #444', padding: '10px', borderRadius: '5px' }}>
+        <h3>デバッグ情報:</h3>
+        <p>ステータス: {loading ? '読み込み中...' : error ? `エラー: ${error}` : `${streams.length}件のストリームを取得`}</p>
+        
+        {firstStreamData && (
+          <div>
+            <h4>最初のストリームデータ:</h4>
+            <pre style={{ 
+              backgroundColor: '#2a2a2a', 
+              padding: '10px', 
+              borderRadius: '5px',
+              overflow: 'auto',
+              fontSize: '12px',
+              maxHeight: '200px'
+            }}>
+              {JSON.stringify(firstStreamData, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+
+      {/* ストリーム一覧 */}
       {loading ? (
         <p>読み込み中...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>エラーが発生しました: {error}</p>
       ) : (
         <div>
-          <p>取得したストリーム数: {streams.length}</p>
-          {streams.length > 0 && (
-            <div style={{ marginBottom: '20px' }}>
-              <h3>最初のストリームデータ（デバッグ用）:</h3>
-              <pre style={{ 
-                backgroundColor: '#2a2a2a', 
-                padding: '10px', 
-                borderRadius: '5px',
-                overflow: 'auto',
-                fontSize: '12px'
-              }}>
-                {JSON.stringify(streams[0], null, 2)}
-              </pre>
-            </div>
+          <h3>ストリーム一覧 ({streams.length}件):</h3>
+          {streams.length === 0 ? (
+            <p>ストリームが見つかりませんでした</p>
+          ) : (
+            streams.slice(0, 5).map(stream => (
+              <StreamCard key={stream.id} stream={stream} />
+            ))
           )}
-          {streams.slice(0, 5).map(stream => (
-            <StreamCard key={stream.id} stream={stream} />
-          ))}
         </div>
       )}
     </div>
   );
-}
+} 
