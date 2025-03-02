@@ -7,11 +7,14 @@ const StreamCard = ({ stream }) => {
   
   // 配信時間を計算する関数
   const calculateDuration = (startedAt) => {
-    if (!startedAt) return null;
+    if (!startedAt) return "時間不明";
     
     try {
       const startTime = new Date(startedAt);
-      if (isNaN(startTime.getTime())) return null;
+      if (isNaN(startTime.getTime())) {
+        console.error(`Invalid date format: ${startedAt}`);
+        return "時間不明";
+      }
       
       const now = new Date();
       const durationMs = now - startTime;
@@ -19,20 +22,15 @@ const StreamCard = ({ stream }) => {
       const hours = Math.floor(durationMs / (1000 * 60 * 60));
       const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
       
-      if (hours > 0) {
-        return `${hours}時間${minutes}分`;
-      } else {
-        return `${minutes}分`;
-      }
+      return hours > 0 ? `${hours}時間${minutes}分` : `${minutes}分`;
     } catch (error) {
       console.error('Error calculating duration:', error);
-      return null;
+      return "時間不明";
     }
   };
   
-  // 配信時間を計算（ハードコードされた値を使用）
-  // const duration = stream.started_at ? calculateDuration(stream.started_at) : null;
-  const duration = "3時間45分"; // テスト用
+  // 配信時間を動的に適用
+  const duration = stream.started_at ? calculateDuration(stream.started_at) : "時間不明";
   
   return (
     <div className={styles.card}>
@@ -68,7 +66,7 @@ const StreamCard = ({ stream }) => {
             borderRadius: '3px',
             zIndex: 1
           }}>
-            3時間45分
+            {duration}
           </span>
         </div>
         <div className={styles.streamerInfo}>
@@ -76,7 +74,7 @@ const StreamCard = ({ stream }) => {
           <span className={styles.game}>{stream.game_name}</span>
         </div>
         <div className={styles.viewerCount}>
-          <span>👁 {stream.viewer_count.toLocaleString()}</span>
+          <span>👁 {stream.viewer_count ? stream.viewer_count.toLocaleString() : "0"}</span>
         </div>
         {/* デバッグ情報 */}
         <div style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
@@ -87,4 +85,4 @@ const StreamCard = ({ stream }) => {
   );
 };
 
-export default StreamCard; 
+export default StreamCard;
