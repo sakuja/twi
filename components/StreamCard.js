@@ -2,6 +2,9 @@ import React from 'react';
 import styles from '../styles/StreamCard.module.css';
 
 const StreamCard = ({ stream }) => {
+  // デバッグ情報をコンソールに出力
+  console.log('Stream data in card:', stream);
+  
   return (
     <div className={styles.card}>
       <div className={styles.imageContainer}>
@@ -14,7 +17,11 @@ const StreamCard = ({ stream }) => {
       <div className={styles.content}>
         <div className={styles.titleContainer}>
           <h3 className={styles.title}>{stream.title}</h3>
-          <span className={styles.duration}>{stream.stream_duration}</span>
+          {stream.stream_duration ? (
+            <span className={styles.duration}>{stream.stream_duration}</span>
+          ) : (
+            <span className={styles.duration}>配信時間不明</span>
+          )}
         </div>
         <div className={styles.streamerInfo}>
           <span className={styles.name}>{stream.user_name}</span>
