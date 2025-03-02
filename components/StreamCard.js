@@ -30,8 +30,9 @@ const StreamCard = ({ stream }) => {
     }
   };
   
-  // 配信時間を計算
-  const duration = stream.started_at ? calculateDuration(stream.started_at) : null;
+  // 配信時間を計算（ハードコードされた値を使用）
+  // const duration = stream.started_at ? calculateDuration(stream.started_at) : null;
+  const duration = "3時間45分"; // テスト用
   
   return (
     <div className={styles.card}>
@@ -45,7 +46,7 @@ const StreamCard = ({ stream }) => {
       <div className={styles.content}>
         <div className={styles.titleContainer}>
           <h3 className={styles.title}>{stream.title}</h3>
-          {duration && <span className={styles.duration}>{duration}</span>}
+          <span className={styles.duration}>{duration}</span>
         </div>
         <div className={styles.streamerInfo}>
           <span className={styles.name}>{stream.user_name}</span>
