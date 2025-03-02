@@ -101,7 +101,6 @@ async function waitRateLimitReset(headers) {
     }
 }
 
-
 // Twitchストリームを取得する関数
 async function fetchTwitchStreams(token) {
     console.log('Fetching streams from Twitch API');
@@ -112,6 +111,7 @@ async function fetchTwitchStreams(token) {
         for (let pageCount = 0; pageCount < MAX_PAGES; pageCount++) {
             const params = {
                 first: BATCH_SIZE,
+                language: 'ja', // 日本語ストリームのみをリクエスト
                 ...(cursor && { after: cursor }) // カーソルがあれば追加
             };
 
@@ -130,26 +130,15 @@ async function fetchTwitchStreams(token) {
             }
 
             const streams = streamsResponse.data.data;
-            console.log(`Retrieved ${streams.length} streams from page ${pageCount + 1}`);
+            console.log(`Retrieved ${streams.length} Japanese streams from page ${pageCount + 1}`);
             allStreams.push(...streams);
 
             cursor = streamsResponse.data.pagination?.cursor;
             if (!cursor) break; // 次のページがない場合は終了
         }
 
-        console.log(`Total streams retrieved: ${allStreams.length}`);
-        
-        // 言語フィルタリングを調整（日本語ストリームが少ない場合は全ストリームを返す）
-        const japaneseStreams = allStreams.filter(stream => stream.language === 'ja');
-        console.log(`Filtered to ${japaneseStreams.length} Japanese streams`);
-
-        // 日本語ストリームが50件未満の場合は、全ストリームから上位を返す
-        if (japaneseStreams.length < 50) {
-            console.log('Not enough Japanese streams, returning mixed language streams');
-            return allStreams;
-        }
-        
-        return japaneseStreams;
+        console.log(`Total Japanese streams retrieved: ${allStreams.length}`);
+        return allStreams;
 
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message;
@@ -158,8 +147,6 @@ async function fetchTwitchStreams(token) {
         throw new TwitchAPIError(`Error fetching Twitch streams: ${errorMessage}`, statusCode);
     }
 }
-
-
 
 // ストリーム情報を処理する関数 (大幅に簡略化)
 async function processStreams(streams, token) {
