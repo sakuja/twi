@@ -194,13 +194,13 @@ footer {
 
 .stream-duration {
     display: inline-block;
-    margin-left: 10px;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: #ffffff;
     background-color: #6441a5; /* Twitchカラー */
-    padding: 2px 5px;
+    padding: 1px 4px;
     border-radius: 3px;
     font-weight: normal;
+    z-index: 1;
 }
 
 /* レスポンシブデザイン */
@@ -219,5 +219,12 @@ footer {
         display: none; /* モバイルではゲーム列を非表示 */
     }
   
+}
+
+.game-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    padding-bottom: 15px; /* 配信時間のためのスペースを確保 */
 }
 
