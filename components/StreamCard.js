@@ -1,6 +1,37 @@
 import React from 'react';
 
 const StreamCard = ({ stream }) => {
+  // 配信時間を計算する関数
+  const calculateDuration = (startedAt) => {
+    if (!startedAt) return '時間不明';
+    
+    try {
+      const startTime = new Date(startedAt);
+      const currentTime = new Date();
+      const durationMs = currentTime - startTime;
+      
+      // ミリ秒を時間と分に変換
+      const hours = Math.floor(durationMs / (1000 * 60 * 60));
+      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      console.log(`配信開始時間: ${startedAt}`);
+      console.log(`現在時間: ${currentTime.toISOString()}`);
+      console.log(`配信時間(ms): ${durationMs}`);
+      console.log(`配信時間: ${hours}時間${minutes}分`);
+      
+      return `${hours}時間${minutes}分`;
+    } catch (error) {
+      console.error('配信時間計算エラー:', error);
+      return '計算エラー';
+    }
+  };
+
+  // ストリームデータをコンソールに出力（デバッグ用）
+  console.log('StreamCard - stream data:', stream);
+  
+  // 配信時間を計算
+  const duration = stream.started_at ? calculateDuration(stream.started_at) : '時間不明';
+  
   return (
     <div style={{ 
       display: 'flex', 
@@ -37,7 +68,7 @@ const StreamCard = ({ stream }) => {
             fontSize: '0.8rem',
             fontWeight: 'bold'
           }}>
-            配信時間テスト
+            {duration}
           </div>
         </div>
         <div>
