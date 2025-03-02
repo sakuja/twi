@@ -14,23 +14,15 @@ const StreamCard = ({ stream }) => {
       const hours = Math.floor(durationMs / (1000 * 60 * 60));
       const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
       
-      console.log(`配信開始時間: ${startedAt}`);
-      console.log(`現在時間: ${currentTime.toISOString()}`);
-      console.log(`配信時間(ms): ${durationMs}`);
-      console.log(`配信時間: ${hours}時間${minutes}分`);
-      
       return `${hours}時間${minutes}分`;
     } catch (error) {
       console.error('配信時間計算エラー:', error);
       return '計算エラー';
     }
   };
-
-  // ストリームデータをコンソールに出力（デバッグ用）
-  console.log('StreamCard - stream data:', stream);
   
   // 配信時間を計算
-  const duration = stream.started_at ? calculateDuration(stream.started_at) : '時間不明';
+  const duration = stream.stream_duration || (stream.started_at ? calculateDuration(stream.started_at) : '時間不明');
   
   return (
     <div style={{ 
@@ -42,9 +34,13 @@ const StreamCard = ({ stream }) => {
     }}>
       <div style={{ marginRight: '10px' }}>
         <img 
-          src={stream.profile_image_url} 
-          alt="プロフィール画像" 
+          src={stream.profile_image_url || stream.thumbnail_url} 
+          alt={`${stream.user_name}のプロフィール画像`}
           style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+          }}
         />
       </div>
       <div style={{ flex: 1 }}>
@@ -73,6 +69,11 @@ const StreamCard = ({ stream }) => {
         </div>
         <div>
           <span style={{ fontSize: '0.8rem', color: '#adadb8' }}>{stream.user_name}</span>
+          {stream.viewer_count && (
+            <span style={{ fontSize: '0.8rem', color: '#adadb8', marginLeft: '10px' }}>
+              👁 {stream.viewer_count.toLocaleString()}
+            </span>
+          )}
         </div>
       </div>
     </div>
