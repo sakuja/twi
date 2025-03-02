@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from '../styles/StreamCard.module.css';
 
 const StreamCard = ({ stream }) => {
-  const [duration, setDuration] = useState('配信時間不明');
+  // デバッグ情報をコンソールに出力
+  console.log('Stream data in card:', stream);
   
   // 配信時間を計算する関数
   const calculateDuration = (startedAt) => {
-    if (!startedAt) return '配信時間不明';
+    if (!startedAt) return null;
     
     try {
       const startTime = new Date(startedAt);
-      if (isNaN(startTime.getTime())) return '配信時間不明';
+      if (isNaN(startTime.getTime())) return null;
       
       const now = new Date();
       const durationMs = now - startTime;
@@ -25,29 +26,12 @@ const StreamCard = ({ stream }) => {
       }
     } catch (error) {
       console.error('Error calculating duration:', error);
-      return '配信時間不明';
+      return null;
     }
   };
   
-  // コンポーネントがマウントされたときにデバッグ情報を出力
-  useEffect(() => {
-    console.log('Stream data in card:', {
-      user_name: stream.user_name,
-      started_at: stream.started_at
-    });
-    
-    // started_atフィールドがある場合は配信時間を計算
-    if (stream.started_at) {
-      setDuration(calculateDuration(stream.started_at));
-      
-      // 1分ごとに配信時間を更新
-      const intervalId = setInterval(() => {
-        setDuration(calculateDuration(stream.started_at));
-      }, 60000);
-      
-      return () => clearInterval(intervalId);
-    }
-  }, [stream]);
+  // 配信時間を計算
+  const duration = stream.started_at ? calculateDuration(stream.started_at) : null;
   
   return (
     <div className={styles.card}>
@@ -61,7 +45,7 @@ const StreamCard = ({ stream }) => {
       <div className={styles.content}>
         <div className={styles.titleContainer}>
           <h3 className={styles.title}>{stream.title}</h3>
-          <span className={styles.duration}>{duration}</span>
+          {duration && <span className={styles.duration}>{duration}</span>}
         </div>
         <div className={styles.streamerInfo}>
           <span className={styles.name}>{stream.user_name}</span>
@@ -69,6 +53,10 @@ const StreamCard = ({ stream }) => {
         </div>
         <div className={styles.viewerCount}>
           <span>👁 {stream.viewer_count.toLocaleString()}</span>
+        </div>
+        {/* デバッグ情報 */}
+        <div style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
+          開始時間: {stream.started_at || 'なし'}
         </div>
       </div>
     </div>
