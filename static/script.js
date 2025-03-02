@@ -2,18 +2,22 @@ async function fetchData() {
   console.log('Fetching data from API...');
   try {
     const response = await fetch('/api/streams');
-    
     if (!response.ok) {
       throw new Error(`API responded with status: ${response.status}`);
     }
-    
-    const data = await response.json();
-    
-    if (!Array.isArray(data)) {
-      throw new Error('Unexpected API response format: Expected an array');
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      throw new Error('Failed to parse JSON response');
     }
 
-    console.log(`Data received from API: ${data.length} streams found`);
+    if (!Array.isArray(data)) {
+      throw new Error('API response is not an array');
+    }
+
+    console.log('Data received from API');
 
     if (data.length > 0) {
       console.log('First stream data:', {
@@ -22,7 +26,6 @@ async function fetchData() {
         stream_duration: data[0].stream_duration
       });
 
-      // `started_at` フィールドが欠けているストリーム数をカウント
       const missingStartedAt = data.filter(stream => !stream.started_at).length;
       console.log(`Streams missing started_at: ${missingStartedAt} out of ${data.length}`);
     } else {
