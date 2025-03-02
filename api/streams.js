@@ -101,72 +101,87 @@ async function waitRateLimitReset(headers) {
     }
 }
 
-// Twitchストリームを取得する関数
+// ストリームデータを取得する関数
 async function fetchTwitchStreams(token) {
-    console.log('Fetching streams from Twitch API');
-    let allStreams = [];
-    let cursor = null;
-
-    try {
-        for (let pageCount = 0; pageCount < MAX_PAGES; pageCount++) {
-            const params = {
-                first: BATCH_SIZE,
-                language: 'ja', // 日本語ストリームのみをリクエスト
-                ...(cursor && { after: cursor }) // カーソルがあれば追加
-            };
-
-            const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
-                headers: {
-                    'Client-ID': process.env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${token}`
-                },
-                params
-            });
-
-            await waitRateLimitReset(streamsResponse.headers); // レートリミット処理
-
-            if (!streamsResponse.data?.data) {
-                throw new TwitchAPIError('Invalid streams response', 500);
-            }
-
-            const streams = streamsResponse.data.data;
-            
-            // 最初のストリームデータをログ出力して確認
-            if (pageCount === 0 && streams.length > 0) {
-                // すべてのフィールドを確認するためのログ
-                console.log('Sample stream data fields:', Object.keys(streams[0]));
-                console.log('Sample stream data:', JSON.stringify(streams[0], null, 2));
-                
-                // 開始時間フィールドの候補をチェック
-                const possibleTimeFields = ['started_at', 'created_at', 'start_time', 'timestamp', 'created_time'];
-                for (const field of possibleTimeFields) {
-                    if (streams[0][field]) {
-                        console.log(`Found time field: ${field} = ${streams[0][field]}`);
-                    }
-                }
-            }
-            
-            console.log(`Retrieved ${streams.length} Japanese streams from page ${pageCount + 1}`);
-            allStreams.push(...streams);
-
-            cursor = streamsResponse.data.pagination?.cursor;
-            if (!cursor) break; // 次のページがない場合は終了
+  console.log('Fetching streams from Twitch API');
+  
+  try {
+    // 日本語のストリームを取得
+    const response = await fetch(
+      'https://api.twitch.tv/helix/streams?language=ja&first=100',
+      {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
         }
+      }
+    );
 
-        console.log(`Total Japanese streams retrieved: ${allStreams.length}`);
-        
-        // started_atフィールドの存在を確認
-        const streamsWithStartedAt = allStreams.filter(stream => stream.started_at).length;
-        console.log(`Streams with started_at field: ${streamsWithStartedAt} out of ${allStreams.length}`);
-        
-        return allStreams;
-
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      const statusCode = error.response?.status || 500;
-      console.error('Error in fetchTwitchStreams:', errorMessage);
-        throw new TwitchAPIError(`Error fetching Twitch streams: ${errorMessage}`, statusCode);
+    if (!response.ok) {
+      throw new Error(`Twitch API error: ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log(`Fetched ${data.data.length} streams`);
+    
+    // サンプルストリームのフィールドをログに出力
+    if (data.data && data.data.length > 0) {
+      console.log('Sample stream data fields:', Object.keys(data.data[0]));
+      console.log('First stream data:', JSON.stringify(data.data[0], null, 2));
+    }
+
+    // ユーザー情報を取得するためのユーザーIDを収集
+    const userIds = data.data.map(stream => stream.user_id);
+    
+    // ユーザー情報を取得
+    const usersResponse = await fetch(
+      `https://api.twitch.tv/helix/users?id=${userIds.join('&id=')}`,
+      {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    if (!usersResponse.ok) {
+      throw new Error(`Twitch Users API error: ${usersResponse.status}`);
+    }
+
+    const usersData = await usersResponse.json();
+    
+    // ユーザー情報をマップ
+    const usersMap = {};
+    usersData.data.forEach(user => {
+      usersMap[user.id] = user;
+    });
+    
+    // ストリーム情報とユーザー情報を結合
+    const formattedStreams = data.data.map(stream => {
+      const user = usersMap[stream.user_id] || {};
+      
+      return {
+        id: stream.id,
+        user_id: stream.user_id,
+        user_name: stream.user_name,
+        title: stream.title,
+        viewer_count: stream.viewer_count,
+        started_at: stream.started_at, // 配信開始時間を確実に含める
+        profile_image_url: user.profile_image_url || 'https://placehold.co/40x40/6441a5/FFFFFF/webp?text=?',
+        language: stream.language
+      };
+    });
+    
+    // 最初のフォーマット済みストリームをログに出力
+    if (formattedStreams.length > 0) {
+      console.log('First formatted stream:', JSON.stringify(formattedStreams[0], null, 2));
+    }
+    
+    return formattedStreams;
+  } catch (error) {
+    console.error('Error fetching Twitch streams:', error);
+    return [];
+  }
 }
 
 // 配信時間を計算する関数
