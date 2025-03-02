@@ -13,6 +13,7 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           console.log('Fetched streams:', data.length);
+          console.log('First stream example:', data[0]);
           setStreams(data);
         } else {
           console.error('API error:', response.status);
@@ -33,7 +34,8 @@ export default function Home() {
     user_name: 'テストユーザー',
     title: 'これはテスト配信です',
     profile_image_url: 'https://placehold.co/40x40/6441a5/FFFFFF/webp?text=T',
-    viewer_count: 1000
+    viewer_count: 1000,
+    started_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() // 3時間前
   };
 
   return (
@@ -61,6 +63,20 @@ export default function Home() {
       ) : (
         <div>
           <p>取得したストリーム数: {streams.length}</p>
+          {streams.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <h3>最初のストリームデータ（デバッグ用）:</h3>
+              <pre style={{ 
+                backgroundColor: '#2a2a2a', 
+                padding: '10px', 
+                borderRadius: '5px',
+                overflow: 'auto',
+                fontSize: '12px'
+              }}>
+                {JSON.stringify(streams[0], null, 2)}
+              </pre>
+            </div>
+          )}
           {streams.slice(0, 5).map(stream => (
             <StreamCard key={stream.id} stream={stream} />
           ))}
@@ -68,4 +84,4 @@ export default function Home() {
       )}
     </div>
   );
-} 
+}
