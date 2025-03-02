@@ -44,9 +44,32 @@ const StreamCard = ({ stream }) => {
         />
       </div>
       <div className={styles.content}>
-        <div className={styles.titleContainer}>
-          <h3 className={styles.title}>{stream.title}</h3>
-          <span className={styles.duration}>{duration}</span>
+        <div style={{ position: 'relative', marginBottom: '5px' }}>
+          <h3 style={{ 
+            margin: 0, 
+            fontSize: '0.9rem', 
+            fontWeight: 500, 
+            color: '#efeff1',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            paddingRight: '70px'
+          }}>
+            {stream.title}
+          </h3>
+          <span style={{ 
+            position: 'absolute', 
+            bottom: 0, 
+            right: 0, 
+            fontSize: '0.7rem', 
+            color: '#ffffff', 
+            backgroundColor: 'rgba(100, 65, 165, 0.8)',
+            padding: '2px 5px',
+            borderRadius: '3px',
+            zIndex: 1
+          }}>
+            3時間45分
+          </span>
         </div>
         <div className={styles.streamerInfo}>
           <span className={styles.name}>{stream.user_name}</span>
