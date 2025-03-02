@@ -148,6 +148,22 @@ async function fetchTwitchStreams(token) {
     }
 }
 
+// 配信時間を計算する関数
+function calculateDuration(startedAt) {
+    const startTime = new Date(startedAt);
+    const now = new Date();
+    const durationMs = now - startTime;
+    
+    const hours = Math.floor(durationMs / (1000 * 60 * 60));
+    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+        return `${hours}時間${minutes}分`;
+    } else {
+        return `${minutes}分`;
+    }
+}
+
 // ストリーム情報を処理する関数 (大幅に簡略化)
 async function processStreams(streams, token) {
     if (!streams.length) return [];
@@ -185,27 +201,16 @@ async function processStreams(streams, token) {
             language: stream.language,
             profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
             thumbnail_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name), // 同じ画像でOK
-            tags: stream.tags || []
+            tags: stream.tags || [],
+            started_at: stream.started_at,
+            stream_duration: calculateDuration(stream.started_at)
         };
     });
 
-
-
-// 視聴者数でソート
-formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-
-// 最大50件に制限
-// const top50Streams = formattedStreams.slice(0, 50);
-// console.log(`Returning top ${top50Streams.length} streams`);
-
-// return top50Streams;
-
-      // 視聴者数でソートして上位50件に制限
+    // 視聴者数でソートして上位50件に制限
     formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
     return formattedStreams.slice(0, 50);
 }
-
-
 
 // バルクでゲーム情報を取得する関数
 async function fetchGames(gameIds, token) {
