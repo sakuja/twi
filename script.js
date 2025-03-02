@@ -56,10 +56,12 @@ row.innerHTML = `
         </a>
     </td>
     <td>
-        <a href="${twitchUrl}" target="_blank" class="game-link">
-            ${stream.title || 'No Title'}
-        </a>
-        <span class="stream-duration">${stream.stream_duration || ''}</span>
+        <div style="position: relative;">
+            <a href="${twitchUrl}" target="_blank" class="game-link">
+                ${stream.title || 'No Title'}
+            </a>
+            <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0;">${stream.stream_duration || ''}</span>
+        </div>
     </td>
     <td>
         <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
@@ -126,19 +128,3 @@ row.innerHTML = `
     // 60秒ごとにデータを更新
     setInterval(fetchData, 60000);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
