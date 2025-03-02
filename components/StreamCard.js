@@ -1,9 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../styles/StreamCard.module.css';
 
 const StreamCard = ({ stream }) => {
-  // デバッグ情報をコンソールに出力
-  console.log('Stream data in card:', stream);
+  const [duration, setDuration] = useState('配信時間不明');
+  
+  // 配信時間を計算する関数
+  const calculateDuration = (startedAt) => {
+    if (!startedAt) return '配信時間不明';
+    
+    try {
+      const startTime = new Date(startedAt);
+      if (isNaN(startTime.getTime())) return '配信時間不明';
+      
+      const now = new Date();
+      const durationMs = now - startTime;
+      
+      const hours = Math.floor(durationMs / (1000 * 60 * 60));
+      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        return `${hours}時間${minutes}分`;
+      } else {
+        return `${minutes}分`;
+      }
+    } catch (error) {
+      console.error('Error calculating duration:', error);
+      return '配信時間不明';
+    }
+  };
+  
+  // コンポーネントがマウントされたときにデバッグ情報を出力
+  useEffect(() => {
+    console.log('Stream data in card:', {
+      user_name: stream.user_name,
+      started_at: stream.started_at
+    });
+    
+    // started_atフィールドがある場合は配信時間を計算
+    if (stream.started_at) {
+      setDuration(calculateDuration(stream.started_at));
+      
+      // 1分ごとに配信時間を更新
+      const intervalId = setInterval(() => {
+        setDuration(calculateDuration(stream.started_at));
+      }, 60000);
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [stream]);
   
   return (
     <div className={styles.card}>
@@ -17,11 +61,7 @@ const StreamCard = ({ stream }) => {
       <div className={styles.content}>
         <div className={styles.titleContainer}>
           <h3 className={styles.title}>{stream.title}</h3>
-          {stream.stream_duration ? (
-            <span className={styles.duration}>{stream.stream_duration}</span>
-          ) : (
-            <span className={styles.duration}>配信時間不明</span>
-          )}
+          <span className={styles.duration}>{duration}</span>
         </div>
         <div className={styles.streamerInfo}>
           <span className={styles.name}>{stream.user_name}</span>
