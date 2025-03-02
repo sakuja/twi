@@ -136,6 +136,14 @@ async function fetchTwitchStreams(token) {
                 // すべてのフィールドを確認するためのログ
                 console.log('Sample stream data fields:', Object.keys(streams[0]));
                 console.log('Sample stream data:', JSON.stringify(streams[0], null, 2));
+                
+                // 開始時間フィールドの候補をチェック
+                const possibleTimeFields = ['started_at', 'created_at', 'start_time', 'timestamp', 'created_time'];
+                for (const field of possibleTimeFields) {
+                    if (streams[0][field]) {
+                        console.log(`Found time field: ${field} = ${streams[0][field]}`);
+                    }
+                }
             }
             
             console.log(`Retrieved ${streams.length} Japanese streams from page ${pageCount + 1}`);
