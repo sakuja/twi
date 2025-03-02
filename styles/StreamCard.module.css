@@ -40,7 +40,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 50px; /* 配信時間のためのスペース */
+  padding-right: 60px; /* 配信時間のためのスペース */
 }
 
 .duration {
@@ -48,10 +48,11 @@
   bottom: 0;
   right: 0;
   font-size: 0.7rem;
-  color: #adadb8;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 1px 4px;
+  color: #ffffff;
+  background-color: rgba(100, 65, 165, 0.8); /* Twitchカラー */
+  padding: 2px 5px;
   border-radius: 3px;
+  z-index: 1; /* 確実に表示されるようにする */
 }
 
 .streamerInfo {
