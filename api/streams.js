@@ -101,72 +101,102 @@ async function waitRateLimitReset(headers) {
     }
 }
 
-// Twitchストリームを取得する関数
+// ストリームデータを取得する関数
 async function fetchTwitchStreams(token) {
-    console.log('Fetching streams from Twitch API');
-    let allStreams = [];
-    let cursor = null;
-
-    try {
-        for (let pageCount = 0; pageCount < MAX_PAGES; pageCount++) {
-            const params = {
-                first: BATCH_SIZE,
-                language: 'ja', // 日本語ストリームのみをリクエスト
-                ...(cursor && { after: cursor }) // カーソルがあれば追加
-            };
-
-            const streamsResponse = await axios.get('https://api.twitch.tv/helix/streams', {
-                headers: {
-                    'Client-ID': process.env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${token}`
-                },
-                params
-            });
-
-            await waitRateLimitReset(streamsResponse.headers); // レートリミット処理
-
-            if (!streamsResponse.data?.data) {
-                throw new TwitchAPIError('Invalid streams response', 500);
-            }
-
-            const streams = streamsResponse.data.data;
-            
-            // 最初のストリームデータをログ出力して確認
-            if (pageCount === 0 && streams.length > 0) {
-                // すべてのフィールドを確認するためのログ
-                console.log('Sample stream data fields:', Object.keys(streams[0]));
-                console.log('Sample stream data:', JSON.stringify(streams[0], null, 2));
-                
-                // 開始時間フィールドの候補をチェック
-                const possibleTimeFields = ['started_at', 'created_at', 'start_time', 'timestamp', 'created_time'];
-                for (const field of possibleTimeFields) {
-                    if (streams[0][field]) {
-                        console.log(`Found time field: ${field} = ${streams[0][field]}`);
-                    }
-                }
-            }
-            
-            console.log(`Retrieved ${streams.length} Japanese streams from page ${pageCount + 1}`);
-            allStreams.push(...streams);
-
-            cursor = streamsResponse.data.pagination?.cursor;
-            if (!cursor) break; // 次のページがない場合は終了
+  console.log('Fetching streams from Twitch API');
+  
+  try {
+    // 日本語のストリームを取得
+    const response = await axios.get(
+      'https://api.twitch.tv/helix/streams',
+      {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          language: 'ja',
+          first: 100
         }
+      }
+    );
 
-        console.log(`Total Japanese streams retrieved: ${allStreams.length}`);
-        
-        // started_atフィールドの存在を確認
-        const streamsWithStartedAt = allStreams.filter(stream => stream.started_at).length;
-        console.log(`Streams with started_at field: ${streamsWithStartedAt} out of ${allStreams.length}`);
-        
-        return allStreams;
-
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      const statusCode = error.response?.status || 500;
-      console.error('Error in fetchTwitchStreams:', errorMessage);
-        throw new TwitchAPIError(`Error fetching Twitch streams: ${errorMessage}`, statusCode);
+    if (!response.data || !response.data.data) {
+      throw new Error(`Twitch API error: Invalid response`);
     }
+
+    const streams = response.data.data;
+    console.log(`Fetched ${streams.length} streams`);
+    
+    // サンプルストリームのフィールドをログに出力
+    if (streams && streams.length > 0) {
+      console.log('Sample stream data fields:', Object.keys(streams[0]));
+    }
+
+    // ユーザー情報を取得するためのユーザーIDを収集
+    const userIds = streams.map(stream => stream.user_id);
+    
+    // ユーザー情報を取得
+    const usersResponse = await axios.get(
+      'https://api.twitch.tv/helix/users',
+      {
+        headers: {
+          'Client-ID': process.env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          id: userIds.join('&id=')
+        }
+      }
+    );
+
+    if (!usersResponse.data || !usersResponse.data.data) {
+      throw new Error(`Twitch Users API error: Invalid response`);
+    }
+
+    const users = usersResponse.data.data;
+    
+    // ユーザー情報をマップ
+    const usersMap = {};
+    users.forEach(user => {
+      usersMap[user.id] = user;
+    });
+    
+    // ストリーム情報とユーザー情報を結合
+    const formattedStreams = streams.map(stream => {
+      const user = usersMap[stream.user_id] || {};
+      
+      return {
+        id: stream.id,
+        user_id: stream.user_id,
+        user_name: stream.user_name,
+        user_login: stream.user_login,
+        title: stream.title,
+        viewer_count: stream.viewer_count,
+        started_at: stream.started_at,
+        profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        thumbnail_url: stream.thumbnail_url?.replace('{width}', '40').replace('{height}', '40') || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        language: stream.language,
+        game_name: stream.game_name,
+        stream_duration: calculateDuration(stream.started_at)
+      };
+    });
+    
+    // 最初のフォーマット済みストリームをログに出力
+    if (formattedStreams.length > 0) {
+      console.log('First formatted stream:', {
+        user_name: formattedStreams[0].user_name,
+        started_at: formattedStreams[0].started_at,
+        profile_image_url: formattedStreams[0].profile_image_url,
+        stream_duration: formattedStreams[0].stream_duration
+      });
+    }
+    
+    return formattedStreams;
+  } catch (error) {
+    console.error('Error fetching Twitch streams:', error);
+    return [];
+  }
 }
 
 // 配信時間を計算する関数
@@ -386,13 +416,15 @@ module.exports = async (req, res) => {
         console.log('Getting fresh data from Twitch API');
         const token = await getTwitchToken();
         const streams = await fetchTwitchStreams(token);
-        const processedStreams = await processStreams(streams, token);
+        
+        // processStreams関数を使用しない
+        // const processedStreams = await processStreams(streams, token);
 
         // キャッシュを更新
-        cachedData = processedStreams;
+        cachedData = streams;
         cacheTime = Date.now();
 
-        return res.status(200).json(processedStreams);
+        return res.status(200).json(streams);
 
     } catch (error) {
         console.error('Error:', error.message, error.statusCode);
