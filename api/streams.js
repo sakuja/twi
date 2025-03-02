@@ -1,105 +1,4 @@
-const axios = require('axios');
-
-// 定数
-const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5分
-const BATCH_SIZE = 100;
-const MAX_PAGES = 10;
-const TOKEN_EXPIRY_MARGIN_MS = 5 * 1000; // 5秒のマージン
-const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
-
-// レートリミット関連の定数
-const RATE_LIMIT_THRESHOLD = 10; // 残りリクエスト数がこの数値を下回ったら待機
-const RATE_LIMIT_SAFE_MARGIN_MS = 1000; // リセット時間への安全マージン (1秒)
-
-// キャッシュ変数
-let twitchToken = null;
-let tokenExpiry = null;
-let cachedData = null;
-let cacheTime = null;
-
-// 環境変数チェック
-if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
-  console.error("ERROR: Twitch Client ID and Secret must be set in environment variables.");
-  // process.exit(1); // エラーをthrowするように変更することを検討
-}
-
-// エラーハンドリング用のカスタムエラークラス
-class TwitchAPIError extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.name = "TwitchAPIError";
-    this.statusCode = statusCode || 500; // デフォルトは500
-  }
-}
-
-// デモデータを返す関数（開発/テスト用）
-function getDemoData() {
-  console.log('Returning demo data');
-  return [
-    { user_name: "ストリーマー1", user_login: "streamer1", viewer_count: 45000, game_name: "フォートナイト", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー2", user_login: "streamer2", viewer_count: 38000, game_name: "Apex Legends", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー3", user_login: "streamer3", viewer_count: 32000, game_name: "Minecraft", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー4", user_login: "streamer4", viewer_count: 25000, game_name: "リーグ・オブ・レジェンド", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー5", user_login: "streamer5", viewer_count: 20000, game_name: "大乱闘スマッシュブラザーズ", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー6", user_login: "streamer6", viewer_count: 18000, game_name: "Valorant", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー7", user_login: "streamer7", viewer_count: 15000, game_name: "原神", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー8", user_login: "streamer8", viewer_count: 12000, game_name: "ポケットモンスター", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー9", user_login: "streamer9", viewer_count: 10000, game_name: "Among Us", thumbnail_url: "https://via.placeholder.com/40" },
-    { user_name: "ストリーマー10", user_login: "streamer10", viewer_count: 9000, game_name: "Call of Duty", thumbnail_url: "https://via.placeholder.com/40" },
-  ];
-}
-
-// Twitchの認証トークンを取得する関数
-async function getTwitchToken() {
-    if (twitchToken && tokenExpiry && Date.now() < tokenExpiry) {
-        console.log('Reusing existing token');
-        return twitchToken;
-    }
-
-    console.log('Requesting new Twitch token');
-    try {
-        const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
-            params: {
-                client_id: process.env.TWITCH_CLIENT_ID,
-                client_secret: process.env.TWITCH_CLIENT_SECRET,
-                grant_type: 'client_credentials'
-            }
-        });
-
-        if (!response.data?.access_token) {
-            throw new TwitchAPIError('Invalid token response', 500);
-        }
-
-        console.log('Successfully obtained new token');
-        twitchToken = response.data.access_token;
-        tokenExpiry = Date.now() + (response.data.expires_in * 1000) - TOKEN_EXPIRY_MARGIN_MS;
-        return twitchToken;
-
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      const statusCode = error.response?.status || 500;
-      console.error('Token acquisition failed:', errorMessage, statusCode);
-        throw new TwitchAPIError(`Failed to get Twitch token: ${errorMessage}`, statusCode);
-    }
-}
-
-// レートリミット超過時に待機する関数
-async function waitRateLimitReset(headers) {
-    const remaining = parseInt(headers['ratelimit-remaining'], 10);
-    const resetTime = parseInt(headers['ratelimit-reset'], 10);
-
-    if (isNaN(remaining) || isNaN(resetTime)) {
-        console.warn('Rate limit headers are missing or invalid. Skipping rate limit wait.');
-        return;
-    }
-
-    if (remaining < RATE_LIMIT_THRESHOLD) {
-        const waitTime = Math.max(0, (resetTime * 1000) - Date.now() + RATE_LIMIT_SAFE_MARGIN_MS);
-        console.warn(`Approaching rate limit. Waiting for ${waitTime}ms (until ${new Date(resetTime * 1000)})`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        console.log('Rate limit wait finished. Resuming requests.');
-    }
-}
+// ... existing code ...
 
 // ストリームデータを取得する関数
 async function fetchTwitchStreams(token) {
@@ -107,74 +6,89 @@ async function fetchTwitchStreams(token) {
   
   try {
     // 日本語のストリームを取得
-    const response = await fetch(
-      'https://api.twitch.tv/helix/streams?language=ja&first=100',
+    const response = await axios.get(
+      'https://api.twitch.tv/helix/streams',
       {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
+        },
+        params: {
+          language: 'ja',
+          first: 100
         }
       }
     );
 
-    if (!response.ok) {
-      throw new Error(`Twitch API error: ${response.status}`);
+    if (!response.data || !response.data.data) {
+      throw new Error(`Twitch API error: Invalid response`);
     }
 
-    const data = await response.json();
-    console.log(`Fetched ${data.data.length} streams`);
+    const streams = response.data.data;
+    console.log(`Fetched ${streams.length} streams`);
     
     // サンプルストリームのフィールドをログに出力
-    if (data.data && data.data.length > 0) {
-      console.log('Sample stream data fields:', Object.keys(data.data[0]));
-      console.log('First stream data:', JSON.stringify(data.data[0], null, 2));
+    if (streams && streams.length > 0) {
+      console.log('Sample stream data fields:', Object.keys(streams[0]));
     }
 
     // ユーザー情報を取得するためのユーザーIDを収集
-    const userIds = data.data.map(stream => stream.user_id);
+    const userIds = streams.map(stream => stream.user_id);
     
     // ユーザー情報を取得
-    const usersResponse = await fetch(
-      `https://api.twitch.tv/helix/users?id=${userIds.join('&id=')}`,
+    const usersResponse = await axios.get(
+      'https://api.twitch.tv/helix/users',
       {
         headers: {
           'Client-ID': process.env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${token}`
+        },
+        params: {
+          id: userIds.join('&id=')
         }
       }
     );
 
-    if (!usersResponse.ok) {
-      throw new Error(`Twitch Users API error: ${usersResponse.status}`);
+    if (!usersResponse.data || !usersResponse.data.data) {
+      throw new Error(`Twitch Users API error: Invalid response`);
     }
 
-    const usersData = await usersResponse.json();
+    const users = usersResponse.data.data;
     
     // ユーザー情報をマップ
     const usersMap = {};
-    usersData.data.forEach(user => {
+    users.forEach(user => {
       usersMap[user.id] = user;
     });
     
     // ストリーム情報とユーザー情報を結合
-    const formattedStreams = data.data.map(stream => {
+    const formattedStreams = streams.map(stream => {
       const user = usersMap[stream.user_id] || {};
       
       return {
         id: stream.id,
         user_id: stream.user_id,
         user_name: stream.user_name,
+        user_login: stream.user_login,
         title: stream.title,
         viewer_count: stream.viewer_count,
-        started_at: stream.started_at, // 配信開始時間を確実に含める
-        profile_image_url: user.profile_image_url || 'https://placehold.co/40x40/6441a5/FFFFFF/webp?text=?',
-        language: stream.language
+        started_at: stream.started_at,
+        profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        thumbnail_url: stream.thumbnail_url?.replace('{width}', '40').replace('{height}', '40') || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        language: stream.language,
+        game_name: stream.game_name,
+        stream_duration: calculateDuration(stream.started_at)
       };
     });
     
     // 最初のフォーマット済みストリームをログに出力
     if (formattedStreams.length > 0) {
-      console.log('First formatted stream:', JSON.stringify(formattedStreams[0], null, 2));
+      console.log('First formatted stream:', {
+        user_name: formattedStreams[0].user_name,
+        started_at: formattedStreams[0].started_at,
+        profile_image_url: formattedStreams[0].profile_image_url,
+        stream_duration: formattedStreams[0].stream_duration
+      });
     }
     
     return formattedStreams;
@@ -184,201 +98,7 @@ async function fetchTwitchStreams(token) {
   }
 }
 
-// 配信時間を計算する関数
-function calculateDuration(startedAt) {
-    try {
-        if (!startedAt) {
-            console.warn('startedAt is undefined or null');
-            return '配信時間不明';
-        }
-        
-        const startTime = new Date(startedAt);
-        if (isNaN(startTime.getTime())) {
-            console.warn(`Invalid date format: ${startedAt}`);
-            return '配信時間不明';
-        }
-        
-        const now = new Date();
-        const durationMs = now - startTime;
-        
-        const hours = Math.floor(durationMs / (1000 * 60 * 60));
-        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-        
-        if (hours > 0) {
-            return `${hours}時間${minutes}分`;
-        } else {
-            return `${minutes}分`;
-        }
-    } catch (error) {
-        console.error('Error calculating duration:', error);
-        return '配信時間不明';
-    }
-}
-
-// ストリーム情報を処理する関数 (大幅に簡略化)
-async function processStreams(streams, token) {
-    if (!streams.length) return [];
-
-    console.log('Fetching game and user information...');
-
-    // 重複しないゲームIDとユーザーID/ログイン名を取得
-    const gameIds = [...new Set(streams.map(s => s.game_id).filter(id => id))];
-    const userIds = [...new Set(streams.map(s => s.user_id))];
-    const userLogins = [...new Set(streams.map(s => s.user_login))];
-
-    // バルクリクエストでゲーム情報を取得
-    const gamesMap = await fetchGames(gameIds, token);
-    // バルクリクエストでユーザー情報を取得 (loginベース)
-    const usersMap = await fetchUsers(userLogins, token);
-    // バルクリクエストでチャンネル情報を取得
-    const channelsMap = await fetchChannels(userIds, token);
-
-    // サンプルストリームのstarted_atをログ出力
-    if (streams.length > 0) {
-        console.log(`Sample stream started_at: ${streams[0].started_at}`);
-        console.log(`Sample stream all fields:`, Object.keys(streams[0]));
-    }
-
-    // データを整形
-    const formattedStreams = streams.map(stream => {
-        const game = gamesMap[stream.game_id] || {};
-        const user = usersMap[stream.user_login] || {};  // user_login で検索
-        const channel = channelsMap[stream.user_id] || {};
-        
-        // 配信時間を計算（started_atがある場合のみ）
-        const duration = stream.started_at ? calculateDuration(stream.started_at) : '配信時間不明';
-        
-        // 開始時間がない場合はログ出力
-        if (!stream.started_at) {
-            console.warn(`Stream ${stream.user_name} has no started_at field`);
-        }
-
-        return {
-            id: stream.id,
-            user_id: stream.user_id,
-            user_name: stream.user_name,
-            user_login: stream.user_login,
-            game_id: stream.game_id,
-            game_name: game.name || channel.game_name || 'その他',
-            title: stream.title,
-            viewer_count: stream.viewer_count,
-            language: stream.language,
-            profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
-            thumbnail_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name), // 同じ画像でOK
-            tags: stream.tags || [],
-            started_at: stream.started_at || null,
-            stream_duration: duration
-        };
-    });
-
-    // 最初の処理済みストリームをログ出力
-    if (formattedStreams.length > 0) {
-        console.log('First formatted stream:', {
-            user_name: formattedStreams[0].user_name,
-            started_at: formattedStreams[0].started_at,
-            stream_duration: formattedStreams[0].stream_duration
-        });
-    }
-
-    // 視聴者数でソートして上位50件に制限
-    formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-    return formattedStreams.slice(0, 50);
-}
-
-// バルクでゲーム情報を取得する関数
-async function fetchGames(gameIds, token) {
-    const allGames = [];
-    for (let i = 0; i < gameIds.length; i += BATCH_SIZE) {
-        const batch = gameIds.slice(i, i + BATCH_SIZE);
-        const params = new URLSearchParams();
-        batch.forEach(id => params.append('id', id));
-
-        try {
-            const gameResponse = await axios.get('https://api.twitch.tv/helix/games', {
-                headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID, 'Authorization': `Bearer ${token}` },
-                params
-            });
-
-            await waitRateLimitReset(gameResponse.headers); // レートリミット処理
-
-          if (gameResponse.data?.data) {
-              allGames.push(...gameResponse.data.data);
-          }
-        } catch (error) {
-          const errorMessage = error.response?.data?.message || error.message
-          console.error('Error fetching game batch:',errorMessage);
-          // ここではエラーを再スローしない（一部のゲーム情報が取得できなくても続行）
-        }
-    }
-    const gamesMap = {};
-    allGames.forEach(game => gamesMap[game.id] = game);
-    return gamesMap;
-}
-
-// バルクでユーザー情報を取得する関数
-async function fetchUsers(userLogins, token) {
-  const allUsers = [];
-
-  for (let i = 0; i < userLogins.length; i += BATCH_SIZE) {
-    const batch = userLogins.slice(i, i + BATCH_SIZE);
-    const params = new URLSearchParams();
-    batch.forEach(login => params.append('login', login));
-
-    try {
-      const userResponse = await axios.get('https://api.twitch.tv/helix/users', {
-        headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID, 'Authorization': `Bearer ${token}` },
-        params
-      });
-
-      await waitRateLimitReset(userResponse.headers); // レートリミット処理
-
-      if (userResponse.data?.data) {
-        allUsers.push(...userResponse.data.data);
-      }
-    } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message;
-        console.error('Error fetching user batch:', errorMessage);
-      // ここではエラーを再スローしない
-    }
-  }
-
-  const usersMap = {};
-  allUsers.forEach(user => {
-    usersMap[user.login] = user; // login をキーにする
-    usersMap[user.id] = user;    // id もキーにする
-  });
-  return usersMap;
-}
-
-// バルクでチャンネル情報を取得する関数
-async function fetchChannels(userIds, token) {
-    const allChannels = [];
-    for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
-        const batch = userIds.slice(i, i + BATCH_SIZE);
-        const params = new URLSearchParams();
-        batch.forEach(id => params.append('broadcaster_id', id));
-
-        try {
-            const channelsResponse = await axios.get('https://api.twitch.tv/helix/channels', {
-                headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID, 'Authorization': `Bearer ${token}` },
-                params
-            });
-
-            await waitRateLimitReset(channelsResponse.headers); // レートリミット処理
-
-          if(channelsResponse.data?.data){
-            allChannels.push(...channelsResponse.data.data);
-          }
-        } catch (error) {
-          const errorMessage = error.response?.data?.message || error.message;
-          console.error('Error fetching channel batch:', errorMessage);
-          // ここではエラーを再スローしない
-        }
-    }
-    const channelsMap = {};
-    allChannels.forEach(channel => channelsMap[channel.broadcaster_id] = channel);
-    return channelsMap;
-}
+// ... existing code ...
 
 // APIハンドラー
 module.exports = async (req, res) => {
@@ -401,13 +121,15 @@ module.exports = async (req, res) => {
         console.log('Getting fresh data from Twitch API');
         const token = await getTwitchToken();
         const streams = await fetchTwitchStreams(token);
-        const processedStreams = await processStreams(streams, token);
+        
+        // processStreams関数を使用しない
+        // const processedStreams = await processStreams(streams, token);
 
         // キャッシュを更新
-        cachedData = processedStreams;
+        cachedData = streams;
         cacheTime = Date.now();
 
-        return res.status(200).json(processedStreams);
+        return res.status(200).json(streams);
 
     } catch (error) {
         console.error('Error:', error.message, error.statusCode);
@@ -418,3 +140,4 @@ module.exports = async (req, res) => {
         }
     }
 };
+// ... existing code ...
