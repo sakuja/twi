@@ -58,6 +58,7 @@ row.innerHTML = `
     <td>
         <a href="${twitchUrl}" target="_blank" class="game-link">
             ${stream.title || 'No Title'}
+            <span class="stream-duration">${stream.stream_duration || ''}</span>
         </a>
     </td>
     <td>
