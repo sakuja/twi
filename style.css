@@ -196,9 +196,9 @@ footer {
     display: inline-block;
     font-size: 0.7rem;
     color: #ccc;
-    background-color: #fff; /* Twitchカラー */
+    background-color: none; /* Twitchカラー */
     padding: 1px 4px;
-    border-radius: 3px;
+   /* border-radius: 3px;*/
     font-weight: normal;
     z-index: 1;
 }
