@@ -218,31 +218,52 @@ async function fetchAndFormatStreams(token) {
   console.log('Fetching streams from Twitch API');
   
   try {
-    // 日本語のストリームを取得
-    const data = await callTwitchAPI(
-      'https://api.twitch.tv/helix/streams',
-      {
-        language: 'ja',
-        first: 50
-      },
-      token
-    );
-
-    if (!data || !data.data) {
-      throw new TwitchAPIError('Invalid stream data response', 500);
-    }
-
-    const streams = data.data;
-    console.log(`Fetched ${streams.length} streams`);
+    // 複数ページのストリームデータを取得
+    let allStreams = [];
+    let cursor = null;
+    let pageCount = 0;
+    const maxPages = 2; // 2ページ取得すると約100件になるはず
     
+    do {
+      const params = {
+        language: 'ja',
+        first: 50 // 1ページあたり50件
+      };
+      
+      // ページネーションのカーソルがある場合は追加
+      if (cursor) {
+        params.after = cursor;
+      }
+      
+      const data = await callTwitchAPI(
+        'https://api.twitch.tv/helix/streams',
+        params,
+        token
+      );
+
+      if (!data || !data.data) {
+        throw new TwitchAPIError('Invalid stream data response', 500);
+      }
+
+      const streams = data.data;
+      allStreams = [...allStreams, ...streams];
+      
+      // 次のページのカーソルを保存
+      cursor = data.pagination?.cursor;
+      pageCount++;
+      
+      console.log(`Fetched page ${pageCount} with ${streams.length} streams. Total: ${allStreams.length}`);
+      
+    } while (cursor && pageCount < maxPages);
+
     // ユーザー情報を取得するためのユーザーIDを収集
-    const userIds = streams.map(stream => stream.user_id);
+    const userIds = allStreams.map(stream => stream.user_id);
     
     // ユーザー情報を取得
     const usersMap = await fetchUsers(userIds, token);
     
     // ストリーム情報とユーザー情報を結合して整形
-    const formattedStreams = streams.map(stream => {
+    const formattedStreams = allStreams.map(stream => {
       const user = usersMap[stream.user_id] || {};
       
       return {
@@ -291,47 +312,4 @@ module.exports = async (req, res) => {
   console.log('API request received');
   
   try {
-    // 環境変数をチェック
-    validateEnvironment();
-    
-    // キャッシュをチェック
-    if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
-      console.log('Using cached data');
-      return res.status(200).json(cachedData);
-    }
-    
-    // 新しいデータを取得
-    console.log('Getting fresh data from Twitch API');
-    let token;
-    
-    try {
-      token = await getTwitchToken();
-    } catch (error) {
-      console.error('Failed to get token:', error.message);
-      return res.status(error.statusCode || 500).json({ error: 'Authentication failed' });
-    }
-    
-    const streams = await fetchAndFormatStreams(token);
-    
-    // キャッシュを更新
-    cachedData = streams;
-    cacheTime = Date.now();
-    
-    return res.status(200).json(streams);
-  } catch (error) {
-    console.error('Error:', error.message, error.statusCode);
-    
-    if (error instanceof TwitchAPIError) {
-      return res.status(error.statusCode).json({ 
-        error: error.message,
-        timestamp: new Date().toISOString()
-      });
-    } else {
-      return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: error.message,
-        timestamp: new Date().toISOString()
-      });
-    }
-  }
-};
+    // 環境変数
