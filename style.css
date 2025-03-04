@@ -195,7 +195,7 @@ footer {
 .stream-duration {
     display: inline-block;
     font-size: 0.7rem;
-    color: #ccc;
+    color: #808080;
     background-color: none; /* Twitchカラー */
     padding: 1px 4px;
    /* border-radius: 3px;*/
