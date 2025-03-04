@@ -260,22 +260,6 @@ async function fetchAndFormatStreams(token) {
     const userIds = allStreams.map(stream => stream.user_id);
 
 
-// 視聴者数でソートする前に重複を除去
-const uniqueStreamIds = new Set();
-const filteredStreams = formattedStreams.filter(stream => {
-  if (uniqueStreamIds.has(stream.id)) {
-    console.log(`重複を検出: ${stream.user_name} (ID: ${stream.id})`);
-    return false;
-  }
-  uniqueStreamIds.add(stream.id);
-  return true;
-});
-
-// 視聴者数でソート (既存のコードを置き換え)
-filteredStreams.sort((a, b) => b.viewer_count - a.viewer_count);
-
-return filteredStreams;
-
     
     
     
@@ -306,9 +290,27 @@ return filteredStreams;
     });
     
     // 視聴者数でソート
-    formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+    //　formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
     
-    return formattedStreams;
+   //　 return formattedStreams;
+
+
+// 重複を除去（streamのIDをキーにして）
+const uniqueStreamIds = new Set();
+const filteredStreams = formattedStreams.filter(stream => {
+  if (uniqueStreamIds.has(stream.id)) {
+    console.log(`重複を検出: ${stream.user_name} (ID: ${stream.id})`);
+    return false;
+  }
+  uniqueStreamIds.add(stream.id);
+  return true;
+});
+
+// 視聴者数でソート
+filteredStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+
+return filteredStreams;
+    
   } catch (error) {
     console.error('Error fetching and formatting streams:', error);
     if (error instanceof TwitchAPIError) {
