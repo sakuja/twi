@@ -258,6 +258,26 @@ async function fetchAndFormatStreams(token) {
 
     // ユーザー情報を取得するためのユーザーIDを収集
     const userIds = allStreams.map(stream => stream.user_id);
+
+
+// 視聴者数でソートする前に重複を除去
+const uniqueStreamIds = new Set();
+const filteredStreams = formattedStreams.filter(stream => {
+  if (uniqueStreamIds.has(stream.id)) {
+    console.log(`重複を検出: ${stream.user_name} (ID: ${stream.id})`);
+    return false;
+  }
+  uniqueStreamIds.add(stream.id);
+  return true;
+});
+
+// 視聴者数でソート (既存のコードを置き換え)
+filteredStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+
+return filteredStreams;
+
+    
+    
     
     // ユーザー情報を取得
     const usersMap = await fetchUsers(userIds, token);
