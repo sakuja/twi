@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const rankingsTable = document.getElementById('rankings');
     const rankingsBody = document.getElementById('rankings-body');
     const updateTimeElement = document.getElementById('update-time');
+    const page1Button = document.getElementById('page1');
+    const page2Button = document.getElementById('page2');
+    
+    // 現在のページ状態を保持
+    let currentPage = 1; // デフォルトは1ページ目
+    let allStreamData = []; // 全てのストリームデータを保持
     
     // 数値をフォーマットする関数
     function formatNumber(num) {
@@ -20,67 +26,116 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimeElement.textContent = now.toLocaleString('ja-JP');
     }
     
-// テーブルを更新する関数
-function updateTable(data) {
-    console.log('Updating table with data');
-    
-    // テーブルの内容をクリア
-    rankingsBody.innerHTML = '';
-    
-    // データをテーブルに挿入
-    data.forEach((stream, index) => {
-        // Twitchの配信URLを作成
-        const twitchUrl = `https://twitch.tv/${stream.user_login}`;
+    // ページネーションの設定
+    function setupPagination() {
+        // ページ1ボタンのクリックイベント
+        page1Button.addEventListener('click', () => {
+            if (currentPage !== 1) {
+                currentPage = 1;
+                updatePageButtons();
+                renderCurrentPageData();
+            }
+        });
         
-        // 簡易的なプロフィール画像の作成（初期のみ）
-        const initialImage = `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
+        // ページ2ボタンのクリックイベント
+        page2Button.addEventListener('click', () => {
+            if (currentPage !== 2) {
+                currentPage = 2;
+                updatePageButtons();
+                renderCurrentPageData();
+            }
+        });
+    }
+    
+    // ページボタンの見た目を更新
+    function updatePageButtons() {
+        // すべてのボタンからactiveクラスを削除
+        page1Button.classList.remove('active');
+        page2Button.classList.remove('active');
         
-        const row = document.createElement('tr');
-        if (index < 3) {
-            row.classList.add('top-rank');
+        // 現在のページのボタンにactiveクラスを追加
+        if (currentPage === 1) {
+            page1Button.classList.add('active');
+        } else {
+            page2Button.classList.add('active');
+        }
+    }
+    
+    // 現在のページに応じたデータをレンダリング
+    function renderCurrentPageData() {
+        if (allStreamData.length === 0) {
+            return; // データがなければ何もしない
         }
         
-     // 行の内容を作成
-// テーブル更新関数内の行生成部分
-row.innerHTML = `
-    <td>${index + 1}</td>
-    <td>
-        <a href="${twitchUrl}" target="_blank" class="streamer-link">
-            <div class="streamer-cell">
-                <img src="${stream.profile_image_url}" 
-                     alt="" 
-                     class="streamer-thumbnail"
-                     onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
-                <span>${stream.user_name}</span>
-            </div>
-        </a>
-    </td>
-    <td>
-        <div style="position: relative;">
-            <a href="${twitchUrl}" target="_blank" class="game-link">
-                ${stream.title || 'No Title'}
-            </a>
-            <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0;">${stream.stream_duration || ''}</span>
-        </div>
-    </td>
-    <td>
-        <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
-            ${stream.game_name || 'その他'}
-        </a>
-    </td>
-    <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-`;
+        // 表示するデータの範囲を決定
+        const startIndex = (currentPage - 1) * 50;
+        const endIndex = startIndex + 50;
+        const pageData = allStreamData.slice(startIndex, endIndex);
         
-        rankingsBody.appendChild(row);
-    });
+        // テーブルを更新
+        updateTable(pageData);
+    }
     
-    // ローディングを非表示、テーブルを表示
-    if (loadingElement) loadingElement.style.display = 'none';
-    if (rankingsTable) rankingsTable.style.display = 'table';
-    
-    // 更新時刻を設定
-    updateCurrentTime();
-}
+    // テーブルを更新する関数
+    function updateTable(data) {
+        console.log('Updating table with data');
+        
+        // テーブルの内容をクリア
+        rankingsBody.innerHTML = '';
+        
+        // データをテーブルに挿入
+        data.forEach((stream, index) => {
+            // 実際の順位を計算
+            const rank = (currentPage - 1) * 50 + index + 1;
+            
+            // Twitchの配信URLを作成
+            const twitchUrl = `https://twitch.tv/${stream.user_login}`;
+            
+            const row = document.createElement('tr');
+            if (rank <= 3) {
+                row.classList.add('top-rank');
+            }
+            
+            // 行の内容を作成
+            row.innerHTML = `
+                <td>${rank}</td>
+                <td>
+                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                        <div class="streamer-cell">
+                            <img src="${stream.profile_image_url}" 
+                                 alt="" 
+                                 class="streamer-thumbnail"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
+                            <span>${stream.user_name}</span>
+                        </div>
+                    </a>
+                </td>
+                <td>
+                    <div style="position: relative;">
+                        <a href="${twitchUrl}" target="_blank" class="game-link">
+                            ${stream.title || 'No Title'}
+                        </a>
+                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0;">${stream.stream_duration || ''}</span>
+                    </div>
+                </td>
+                <td>
+                    <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
+                        ${stream.game_name || 'その他'}
+                    </a>
+                </td>
+                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+            `;
+            
+            rankingsBody.appendChild(row);
+        });
+        
+        // ローディングを非表示、テーブルを表示
+        if (loadingElement) loadingElement.style.display = 'none';
+        if (rankingsTable) rankingsTable.style.display = 'table';
+        
+        // 更新時刻を設定
+        updateCurrentTime();
+    }
     
     // エラー表示関数
     function showError(message) {
@@ -113,14 +168,20 @@ row.innerHTML = `
             const data = await response.json();
             console.log('Data received from API');
             
-            // テーブルを更新
-            updateTable(data);
+            // 全てのデータを保存
+            allStreamData = data;
+            
+            // 現在のページのデータを表示
+            renderCurrentPageData();
             
         } catch (error) {
             console.error('Error fetching data:', error);
             showError(error.message);
         }
     }
+    
+    // 初回データ取得の前にページネーションをセットアップ
+    setupPagination();
     
     // 初回データ取得
     fetchData();
