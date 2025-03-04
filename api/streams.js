@@ -312,4 +312,47 @@ module.exports = async (req, res) => {
   console.log('API request received');
   
   try {
-    // 環境変数
+    // 環境変数をチェック
+    validateEnvironment();
+    
+    // キャッシュをチェック
+    if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
+      console.log('Using cached data');
+      return res.status(200).json(cachedData);
+    }
+    
+    // 新しいデータを取得
+    console.log('Getting fresh data from Twitch API');
+    let token;
+    
+    try {
+      token = await getTwitchToken();
+    } catch (error) {
+      console.error('Failed to get token:', error.message);
+      return res.status(error.statusCode || 500).json({ error: 'Authentication failed' });
+    }
+    
+    const streams = await fetchAndFormatStreams(token);
+    
+    // キャッシュを更新
+    cachedData = streams;
+    cacheTime = Date.now();
+    
+    return res.status(200).json(streams);
+  } catch (error) {
+    console.error('Error:', error.message, error.statusCode);
+    
+    if (error instanceof TwitchAPIError) {
+      return res.status(error.statusCode).json({ 
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      return res.status(500).json({ 
+        error: 'Internal Server Error', 
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+};
