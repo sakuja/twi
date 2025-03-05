@@ -113,71 +113,58 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTable(pageData);
     }
     
-    // 完全なupdateTable関数の例（参考用）：
-function updateTable(data) {
-    console.log('Updating table with data');
-    console.log('First stream profile image:', data[0]?.profile_image_url);
-    
-    // テーブルの内容をクリア
-    rankingsBody.innerHTML = '';
-    
-    // データをテーブルに挿入
-    data.forEach((stream, index) => {
-        // 実際の順位を計算
-        const rank = (currentPage - 1) * 50 + index + 1;
+    // テーブルを更新する関数
+    function updateTable(data) {
+        console.log('Updating table with data');
         
-        // Twitchの配信URLを作成
-        const twitchUrl = `https://twitch.tv/${stream.user_login}`;
+        // テーブルの内容をクリア
+        rankingsBody.innerHTML = '';
         
-        // プロフィール画像URLの確認（デバッグ用）
-        const profileImageUrl = stream.profile_image_url || 
-            `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}`;
-        
-        const row = document.createElement('tr');
-        if (rank <= 3) {
-            row.classList.add('top-rank');
-        }
-        
-        // 行の内容を作成
-        row.innerHTML = `
-            <td>${rank}</td>
-            <td>
-                <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                    <div class="streamer-cell">
-                        <img src="${profileImageUrl}" 
-                             alt="${stream.user_name}" 
-                             class="streamer-thumbnail"
-                             onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
-                        <span>${stream.user_name}</span>
-                    </div>
-                </a>
-            </td>
-            <td>
-                <div style="position: relative;">
-                    <a href="${twitchUrl}" target="_blank" class="game-link">
-                        ${stream.title || 'No Title'}
+        // データをテーブルに挿入
+        data.forEach((stream, index) => {
+            // 実際の順位を計算
+            const rank = (currentPage - 1) * 50 + index + 1;
+            
+            // Twitchの配信URLを作成
+            const twitchUrl = `https://twitch.tv/${stream.user_login}`;
+            
+            const row = document.createElement('tr');
+            if (rank <= 3) {
+                row.classList.add('top-rank');
+            }
+            
+            // 行の内容を作成
+            row.innerHTML = `
+                <td>${rank}</td>
+                <td>
+                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
+                        <div class="streamer-cell">
+                            <img src="${stream.profile_image_url}" 
+                                 alt="" 
+                                 class="streamer-thumbnail"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
+                            <span>${stream.user_name}</span>
+                        </div>
                     </a>
-                    <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
-                </div>
-            </td>
-            <td>
-                <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
-                    ${stream.game_name || 'その他'}
-                </a>
-            </td>
-            <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-        `;
-        
-        rankingsBody.appendChild(row);
-    });
-    
-    // ローディングを非表示、テーブルを表示
-    if (loadingElement) loadingElement.style.display = 'none';
-    if (rankingsTable) rankingsTable.style.display = 'table';
-    
-    // 更新時刻を設定
-    updateCurrentTime();
-}
+                </td>
+                <td>
+                    <div style="position: relative;">
+                        <a href="${twitchUrl}" target="_blank" class="game-link">
+                            ${stream.title || 'No Title'}
+                        </a>
+                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
+                    </div>
+                </td>
+                <td>
+                    <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
+                        ${stream.game_name || 'その他'}
+                    </a>
+                </td>
+                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+            `;
+            
+            rankingsBody.appendChild(row);
+        });
         
         // ローディングを非表示、テーブルを表示
         if (loadingElement) loadingElement.style.display = 'none';
