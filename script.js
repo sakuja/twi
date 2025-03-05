@@ -22,44 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // 配信時間の色を決定する関数
-function getDurationColor(durationText) {
-    // 配信時間からデータを抽出する
-    let hours = 0;
-    let minutes = 0;
-    
-    // 時間と分を抽出
-    const hoursMatch = durationText.match(/(\d+)時間/);
-    const minutesMatch = durationText.match(/(\d+)分/);
-    
-    if (hoursMatch) {
-        hours = parseInt(hoursMatch[1], 10);
-    }
-    
-    if (minutesMatch) {
-        minutes = parseInt(minutesMatch[1], 10);
-    }
-    
-    // 総時間（分）を計算
-    const totalMinutes = hours * 60 + minutes;
-    
-    // 条件に基づいて色を返す
-    if (totalMinutes < 60) {
-        return '#4CAF50'; // 1-59分: 緑色
-    } else if (totalMinutes < 180) {
-        return '#2196F3'; // 1-3時間: 青色
-    } else if (totalMinutes < 480) {
-        return '#FF9800'; // 3-8時間: オレンジ色
-    } else {
-        return '#F44336'; // 8時間以上: 赤色
-    }
-}
-
-// テーブルを更新する関数内の該当部分を変更
-// row.innerHTML = `...` の部分で、stream-durationタグを以下のように修正
-
-// 修正例：
-`<span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>`
+ 
 
 
 
