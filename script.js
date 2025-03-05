@@ -2,6 +2,43 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded');
     
+    // 配信時間の色を決定する関数
+    function getDurationColor(durationText) {
+        // 配信時間からデータを抽出する
+        let hours = 0;
+        let minutes = 0;
+        
+        if (!durationText || durationText === '配信時間不明') {
+            return '#808080'; // 不明な場合はグレー
+        }
+        
+        // 時間と分を抽出
+        const hoursMatch = durationText.match(/(\d+)時間/);
+        const minutesMatch = durationText.match(/(\d+)分/);
+        
+        if (hoursMatch) {
+            hours = parseInt(hoursMatch[1], 10);
+        }
+        
+        if (minutesMatch) {
+            minutes = parseInt(minutesMatch[1], 10);
+        }
+        
+        // 総時間（分）を計算
+        const totalMinutes = hours * 60 + minutes;
+        
+        // 条件に基づいて色を返す
+        if (totalMinutes < 60) {
+            return '#4CAF50'; // 1-59分: 緑色
+        } else if (totalMinutes < 180) {
+            return '#2196F3'; // 1-3時間: 青色
+        } else if (totalMinutes < 480) {
+            return '#FF9800'; // 3-8時間: オレンジ色
+        } else {
+            return '#F44336'; // 8時間以上: 赤色
+        }
+    }
+    
     // 要素の参照を取得
     const loadingElement = document.getElementById('loading');
     const errorElement = document.getElementById('error');
@@ -19,13 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function formatNumber(num) {
         return new Intl.NumberFormat('ja-JP').format(num);
     }
-
-
-
- 
-
-
-
     
     // 現在時刻を更新する関数
     function updateCurrentTime() {
@@ -122,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a href="${twitchUrl}" target="_blank" class="game-link">
                             ${stream.title || 'No Title'}
                         </a>
-                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0;">${stream.stream_duration || ''}</span>
+                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
                     </div>
                 </td>
                 <td>
