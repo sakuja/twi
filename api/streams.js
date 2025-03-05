@@ -2,7 +2,7 @@ const axios = require('axios');
 
 // 定数
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5分
-const BATCH_SIZE = 150;
+const BATCH_SIZE = 200;
 const TOKEN_EXPIRY_MARGIN_MS = 60 * 1000; // 1分のマージン（より安全）
 const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
 
@@ -227,7 +227,7 @@ async function fetchAndFormatStreams(token) {
     do {
       const params = {
         language: 'ja',
-        first: 70 // 1ページあたり50件
+        first: 50 // 1ページあたり50件
       };
       
       // ページネーションのカーソルがある場合は追加
