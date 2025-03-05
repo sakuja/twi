@@ -227,7 +227,7 @@ async function fetchAndFormatStreams(token) {
     do {
       const params = {
         language: 'ja',
-        first: 50 // 1ページあたり50件
+        first: 70 // 1ページあたり50件
       };
       
       // ページネーションのカーソルがある場合は追加
