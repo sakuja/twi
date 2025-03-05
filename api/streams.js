@@ -92,7 +92,7 @@ async function waitRateLimitReset(headers) {
 async function callTwitchAPI(url, params, token, method = 'get') {
   let retries = 0;
   
-  while (retries < MAX_RETRIES) {
+  while (retries < _RETRIES) {
     try {
       const config = {
         headers: {
@@ -222,7 +222,7 @@ async function fetchAndFormatStreams(token) {
     let allStreams = [];
     let cursor = null;
     let pageCount = 0;
-    const maxPages = 2; // 2ページ取得すると約100件になるはず
+    const maxPages = 3; // 2ページ取得すると約100件になるはず
     
     do {
       const params = {
