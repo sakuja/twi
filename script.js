@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (totalMinutes < 60) {
             return '#4CAF50'; // 1-59分: 緑色
         } else if (totalMinutes < 180) {
-            return '#2196F3'; // 1-3時間: 青色
+            return '#808080'; // 1-3時間: 青色 #2196F3
         } else if (totalMinutes < 480) {
-            return '#FF9800'; // 3-8時間: オレンジ色
+            return '#808080'; // 3-8時間: オレンジ色#FF9800
         } else {
             return '#F44336'; // 8時間以上: 赤色
         }
