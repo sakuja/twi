@@ -198,7 +198,7 @@ async function processBatch(items, batchSize, processFn) {
   return results;
 }
 
-// ユーザー情報を取得する関数を元に戻す
+// ユーザー情報を取得する関数
 async function fetchUsers(userIds, token) {
   const fetchBatch = async (batch) => {
     const params = new URLSearchParams();
@@ -210,7 +210,7 @@ async function fetchUsers(userIds, token) {
   
   const users = await processBatch(userIds, BATCH_SIZE, fetchBatch);
   
-  // ユーザー情報をIDでマップ化 (元のシンプルな方法)
+  // ユーザー情報をIDでマップ化
   const usersMap = {};
   users.forEach(user => {
     usersMap[user.id] = user;
@@ -218,9 +218,6 @@ async function fetchUsers(userIds, token) {
   
   return usersMap;
 }
-
-// ストリームデータ取得部分も単純化
-const userIds = allStreams.map(stream => stream.user_id);
 
 // ストリームデータを取得して整形する関数
 async function fetchAndFormatStreams(token) {
@@ -320,9 +317,7 @@ async function fetchAndFormatStreams(token) {
     }
 
     // ユーザー情報を取得するためのユーザーIDを収集
-    const userIds = allStreams
-      .map(stream => stream.user_id)
-      .filter(id => id); // nullやundefinedを除去
+    const userIds = allStreams.map(stream => stream.user_id);
     
     // ユーザー情報を取得
     const usersMap = await fetchUsers(userIds, token);
