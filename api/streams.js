@@ -222,7 +222,7 @@ async function fetchAndFormatStreams(token) {
     let allStreams = [];
     let cursor = null;
     let pageCount = 0;
-    const maxPages = 2; // 2ページ取得すると約100件になるはず
+    const maxPages = 3; // 2ページ取得すると約100件になるはず
     
     do {
       const params = {
