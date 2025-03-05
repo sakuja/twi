@@ -2,7 +2,7 @@ const axios = require('axios');
 
 // 定数
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5分
-const BATCH_SIZE = 200;
+const BATCH_SIZE = 300;
 const TOKEN_EXPIRY_MARGIN_MS = 60 * 1000; // 1分のマージン（より安全）
 const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
 
