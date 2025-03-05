@@ -92,7 +92,7 @@ async function waitRateLimitReset(headers) {
 async function callTwitchAPI(url, params, token, method = 'get') {
   let retries = 0;
   
-  while (retries < _RETRIES) {
+  while (retries < MAX_RETRIES) {
     try {
       const config = {
         headers: {
