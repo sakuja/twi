@@ -231,10 +231,10 @@ async function fetchAndFormatStreams(token) {
       };
       
       // ページネーションのカーソルがある場合は追加
-      if (cursor) {
-        params.after = cursor;
-      }
-      
+if (!cursor) {
+  console.warn("No more pages available from Twitch API");
+  break; // ループを終了
+}
       const data = await callTwitchAPI(
         'https://api.twitch.tv/helix/streams',
         params,
