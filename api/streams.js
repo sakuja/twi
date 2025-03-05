@@ -200,6 +200,7 @@ async function processBatch(items, batchSize, processFn) {
 
 // ユーザー情報を取得する関数
 async function fetchUsers(userIds, token) {
+  // 元の実装のままで、フィルタリングなし
   const fetchBatch = async (batch) => {
     const params = new URLSearchParams();
     batch.forEach(id => params.append('id', id));
@@ -210,10 +211,24 @@ async function fetchUsers(userIds, token) {
   
   const users = await processBatch(userIds, BATCH_SIZE, fetchBatch);
   
+  // サンプルのユーザー情報をログ出力 (デバッグ用)
+  if (users.length > 0) {
+    console.log("Sample user data:", {
+      id: users[0].id,
+      login: users[0].login,
+      display_name: users[0].display_name,
+      has_profile_image: !!users[0].profile_image_url
+    });
+  } else {
+    console.warn("No user data returned from Twitch API");
+  }
+  
   // ユーザー情報をIDでマップ化
   const usersMap = {};
   users.forEach(user => {
-    usersMap[user.id] = user;
+    if (user && user.id) {
+      usersMap[user.id] = user;
+    }
   });
   
   return usersMap;
@@ -326,6 +341,14 @@ async function fetchAndFormatStreams(token) {
     const formattedStreams = allStreams.map(stream => {
       const user = usersMap[stream.user_id] || {};
       
+      // プロフィール画像が取得できない場合はプレースホルダーを使用
+      const profileImageUrl = user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name);
+      
+      // デバッグ用ログ (最初の数件のみ)
+      if (allStreams.indexOf(stream) < 5) {
+        console.log(`Stream ${stream.user_name} (ID: ${stream.user_id}): profile_image_url = ${profileImageUrl}`);
+      }
+      
       return {
         id: stream.id,
         user_id: stream.user_id,
@@ -334,7 +357,7 @@ async function fetchAndFormatStreams(token) {
         title: stream.title,
         viewer_count: stream.viewer_count,
         started_at: stream.started_at,
-        profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        profile_image_url: profileImageUrl,
         thumbnail_url: stream.thumbnail_url
           ? stream.thumbnail_url.replace('{width}', '40').replace('{height}', '40')
           : PLACEHOLDER_IMAGE_URL(stream.user_name),
