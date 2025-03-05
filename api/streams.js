@@ -198,41 +198,29 @@ async function processBatch(items, batchSize, processFn) {
   return results;
 }
 
-// ユーザー情報を取得する関数
+// ユーザー情報を取得する関数を元に戻す
 async function fetchUsers(userIds, token) {
-  // ユーザーIDが空の場合は空のマップを返す
-  if (!userIds || userIds.length === 0) {
-    console.warn('No user IDs provided to fetchUsers');
-    return {};
-  }
-
   const fetchBatch = async (batch) => {
-    if (batch.length === 0) return [];
-    
     const params = new URLSearchParams();
     batch.forEach(id => params.append('id', id));
     
-    try {
-      const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
-      return data?.data || [];
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return [];
-    }
+    const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
+    return data?.data || [];
   };
   
   const users = await processBatch(userIds, BATCH_SIZE, fetchBatch);
   
-  // ユーザー情報をIDでマップ化
+  // ユーザー情報をIDでマップ化 (元のシンプルな方法)
   const usersMap = {};
   users.forEach(user => {
-    if (user && user.id) {
-      usersMap[user.id] = user;
-    }
+    usersMap[user.id] = user;
   });
   
   return usersMap;
 }
+
+// ストリームデータ取得部分も単純化
+const userIds = allStreams.map(stream => stream.user_id);
 
 // ストリームデータを取得して整形する関数
 async function fetchAndFormatStreams(token) {
