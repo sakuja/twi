@@ -222,7 +222,7 @@ async function fetchAndFormatStreams(token) {
     let allStreams = [];
     let cursor = null;
     let pageCount = 0;
-    const maxPages = 3; // 2ページ取得すると約100件になるはず
+    const maxPages = 2; // 2ページ取得すると約100件になるはず
     
     do {
       const params = {
@@ -231,10 +231,10 @@ async function fetchAndFormatStreams(token) {
       };
       
       // ページネーションのカーソルがある場合は追加
-if (!cursor) {
-  console.warn("No more pages available from Twitch API");
-  break; // ループを終了
-}
+      if (cursor) {
+        params.after = cursor;
+      }
+      
       const data = await callTwitchAPI(
         'https://api.twitch.tv/helix/streams',
         params,
