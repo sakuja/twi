@@ -7,8 +7,8 @@ const TOKEN_EXPIRY_MARGIN_MS = 60 * 1000; // 1分のマージン（より安全�
 const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
 
 // レートリミット関連の定数
-const RATE_LIMIT_THRESHOLD = 20; // 残りリクエスト数がこの数値を下回ったら待機
-const RATE_LIMIT_SAFE_MARGIN_MS = 1000; // リセット時間への安全マージン (1秒)
+const RATE_LIMIT_THRESHOLD = 30; // 残りリクエスト数がこの数値を下回ったら待機
+const RATE_LIMIT_SAFE_MARGIN_MS = 2000; // リセット時間への安全マージン (1秒)
 const MAX_RETRIES = 3; // API呼び出しの最大リトライ回数
 
 // キャッシュ変数
