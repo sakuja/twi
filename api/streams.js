@@ -200,12 +200,27 @@ async function processBatch(items, batchSize, processFn) {
 
 // ユーザー情報を取得する関数
 async function fetchUsers(userIds, token) {
+  // ユーザーIDが空の場合は空のマップを返す
+  if (!userIds || userIds.length === 0) {
+    console.warn('No user IDs provided to fetchUsers');
+    return {};
+  }
+
+  console.log(`Fetching user info for ${userIds.length} users`);
+  
   const fetchBatch = async (batch) => {
+    if (batch.length === 0) return [];
+    
     const params = new URLSearchParams();
     batch.forEach(id => params.append('id', id));
     
-    const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
-    return data?.data || [];
+    try {
+      const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
+      return data?.data || [];
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      return [];
+    }
   };
   
   const users = await processBatch(userIds, BATCH_SIZE, fetchBatch);
@@ -213,9 +228,12 @@ async function fetchUsers(userIds, token) {
   // ユーザー情報をIDでマップ化
   const usersMap = {};
   users.forEach(user => {
-    usersMap[user.id] = user;
+    if (user && user.id) {
+      usersMap[user.id] = user;
+    }
   });
   
+  console.log(`Successfully mapped ${Object.keys(usersMap).length} users`);
   return usersMap;
 }
 
@@ -228,7 +246,6 @@ async function fetchAndFormatStreams(token) {
     let allStreams = [];
     let cursor = null;
     let pageCount = 0;
-    // 最大ページ数を増やします（目標は100件以上のデータ）
     const maxPages = 5; // より多くのデータを取得するために増やす
     let hasMorePages = true; // ページングの継続フラグ
     
@@ -311,14 +328,28 @@ async function fetchAndFormatStreams(token) {
     }
 
     // ユーザー情報を取得するためのユーザーIDを収集
-    const userIds = allStreams.map(stream => stream.user_id);
+    const userIds = allStreams.map(stream => stream.user_id).filter(id => id); // nullやundefinedを除去
     
     // ユーザー情報を取得
     const usersMap = await fetchUsers(userIds, token);
     
+    // ユーザー情報のデバッグ出力
+    console.log(`User map contains ${Object.keys(usersMap).length} users`);
+    if (Object.keys(usersMap).length > 0) {
+      const sampleUserId = Object.keys(usersMap)[0];
+      console.log('Sample user data:', usersMap[sampleUserId]);
+    }
+    
     // ストリーム情報とユーザー情報を結合して整形
     const formattedStreams = allStreams.map(stream => {
       const user = usersMap[stream.user_id] || {};
+      
+      // プロフィール画像URLの確認とデバッグ
+      let profileImageUrl = user.profile_image_url;
+      if (!profileImageUrl) {
+        console.log(`Missing profile image for user ${stream.user_name} (ID: ${stream.user_id})`);
+        profileImageUrl = PLACEHOLDER_IMAGE_URL(stream.user_name);
+      }
       
       return {
         id: stream.id,
@@ -328,7 +359,7 @@ async function fetchAndFormatStreams(token) {
         title: stream.title,
         viewer_count: stream.viewer_count,
         started_at: stream.started_at,
-        profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
+        profile_image_url: profileImageUrl,
         thumbnail_url: stream.thumbnail_url
           ? stream.thumbnail_url.replace('{width}', '40').replace('{height}', '40')
           : PLACEHOLDER_IMAGE_URL(stream.user_name),
@@ -355,6 +386,11 @@ async function fetchAndFormatStreams(token) {
     
     // ログ出力（デバッグ用）
     console.log(`Filtered unique streams: ${filteredStreams.length}`);
+    
+    // サンプルデータ出力（デバッグ用）
+    if (filteredStreams.length > 0) {
+      console.log('Sample stream profile image URL:', filteredStreams[0].profile_image_url);
+    }
 
     return filteredStreams;
     
