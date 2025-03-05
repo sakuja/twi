@@ -124,12 +124,6 @@ async function callTwitchAPI(url, params, token, method = 'get') {
         throw new TwitchAPIError('Authentication failed. Token invalid.', 401);
       }
       
-      // 400エラーの場合（無効なカーソルなど）は処理を停止せず結果を返す
-      if (statusCode === 400) {
-        console.warn('Bad request (400 error): Probably reached the end of available data');
-        return { data: [], pagination: {} }; // 空のデータを返して処理を続行
-      }
-      
       // レート制限エラーの場合は待機して再試行
       if (statusCode === 429) {
         const resetHeader = error.response?.headers['ratelimit-reset'];
@@ -200,27 +194,12 @@ async function processBatch(items, batchSize, processFn) {
 
 // ユーザー情報を取得する関数
 async function fetchUsers(userIds, token) {
-  // ユーザーIDが空の場合は空のマップを返す
-  if (!userIds || userIds.length === 0) {
-    console.warn('No user IDs provided to fetchUsers');
-    return {};
-  }
-
-  console.log(`Fetching user info for ${userIds.length} users`);
-  
   const fetchBatch = async (batch) => {
-    if (batch.length === 0) return [];
-    
     const params = new URLSearchParams();
     batch.forEach(id => params.append('id', id));
     
-    try {
-      const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
-      return data?.data || [];
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return [];
-    }
+    const data = await callTwitchAPI('https://api.twitch.tv/helix/users', params, token);
+    return data?.data || [];
   };
   
   const users = await processBatch(userIds, BATCH_SIZE, fetchBatch);
@@ -228,12 +207,9 @@ async function fetchUsers(userIds, token) {
   // ユーザー情報をIDでマップ化
   const usersMap = {};
   users.forEach(user => {
-    if (user && user.id) {
-      usersMap[user.id] = user;
-    }
+    usersMap[user.id] = user;
   });
   
-  console.log(`Successfully mapped ${Object.keys(usersMap).length} users`);
   return usersMap;
 }
 
@@ -246,12 +222,11 @@ async function fetchAndFormatStreams(token) {
     let allStreams = [];
     let cursor = null;
     let pageCount = 0;
-    const maxPages = 5; // より多くのデータを取得するために増やす
-    let hasMorePages = true; // ページングの継続フラグ
+    const maxPages = 2; // 2ページ取得すると約100件になるはず
     
     do {
       const params = {
-        language: 'ja', // 日本語配信のみを取得
+        language: 'ja',
         first: 50 // 1ページあたり50件
       };
       
@@ -260,96 +235,40 @@ async function fetchAndFormatStreams(token) {
         params.after = cursor;
       }
       
-      try {
-        const data = await callTwitchAPI(
-          'https://api.twitch.tv/helix/streams',
-          params,
-          token
-        );
+      const data = await callTwitchAPI(
+        'https://api.twitch.tv/helix/streams',
+        params,
+        token
+      );
 
-        if (!data || !data.data) {
-          console.warn('Invalid or empty response from Twitch API');
-          break; // 無効なレスポンスならループを抜ける
-        }
-
-        const streams = data.data;
-        
-        // 取得したデータが0件ならループを抜ける
-        if (streams.length === 0) {
-          console.log('Received 0 streams, no more data available');
-          hasMorePages = false;
-          break;
-        }
-        
-        allStreams = [...allStreams, ...streams];
-        
-        // 次のページのカーソルを保存
-        cursor = data.pagination?.cursor;
-        pageCount++;
-        
-        console.log(`Fetched page ${pageCount} with ${streams.length} streams. Total: ${allStreams.length}`);
-        
-        // カーソルがない場合はこれ以上のページがないためループを抜ける
-        if (!cursor) {
-          console.log('No pagination cursor returned, reached end of data');
-          hasMorePages = false;
-          break;
-        }
-        
-        // ページ数に達した場合もループを抜ける
-        if (pageCount >= maxPages) {
-          console.log(`Reached maximum page count (${maxPages})`);
-          break;
-        }
-        
-        // 短い間隔でのリクエストを避けるために少し待機
-        if (hasMorePages && pageCount < maxPages) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms待機
-        }
-        
-      } catch (error) {
-        if (error.statusCode === 400) {
-          console.warn('Received 400 error, probably reached end of available data');
-          hasMorePages = false;
-          break;
-        } else {
-          throw error; // その他のエラーは上位へ伝播
-        }
+      if (!data || !data.data) {
+        throw new TwitchAPIError('Invalid stream data response', 500);
       }
-      
-    } while (hasMorePages && pageCount < maxPages && cursor);
 
-    // ログ出力（デバッグ用）
-    console.log(`Total streams fetched: ${allStreams.length}`);
-    
-    // 十分なデータが取得できない場合の警告
-    if (allStreams.length < 90) {
-      console.warn(`Warning: Only fetched ${allStreams.length} streams, which is less than the target of 100`);
-    }
+      const streams = data.data;
+      allStreams = [...allStreams, ...streams];
+      
+      // 次のページのカーソルを保存
+      cursor = data.pagination?.cursor;
+      pageCount++;
+      
+      console.log(`Fetched page ${pageCount} with ${streams.length} streams. Total: ${allStreams.length}`);
+      
+    } while (cursor && pageCount < maxPages);
 
     // ユーザー情報を取得するためのユーザーIDを収集
-    const userIds = allStreams.map(stream => stream.user_id).filter(id => id); // nullやundefinedを除去
+    const userIds = allStreams.map(stream => stream.user_id);
+
+
+    
+    
     
     // ユーザー情報を取得
     const usersMap = await fetchUsers(userIds, token);
     
-    // ユーザー情報のデバッグ出力
-    console.log(`User map contains ${Object.keys(usersMap).length} users`);
-    if (Object.keys(usersMap).length > 0) {
-      const sampleUserId = Object.keys(usersMap)[0];
-      console.log('Sample user data:', usersMap[sampleUserId]);
-    }
-    
     // ストリーム情報とユーザー情報を結合して整形
     const formattedStreams = allStreams.map(stream => {
       const user = usersMap[stream.user_id] || {};
-      
-      // プロフィール画像URLの確認とデバッグ
-      let profileImageUrl = user.profile_image_url;
-      if (!profileImageUrl) {
-        console.log(`Missing profile image for user ${stream.user_name} (ID: ${stream.user_id})`);
-        profileImageUrl = PLACEHOLDER_IMAGE_URL(stream.user_name);
-      }
       
       return {
         id: stream.id,
@@ -359,7 +278,7 @@ async function fetchAndFormatStreams(token) {
         title: stream.title,
         viewer_count: stream.viewer_count,
         started_at: stream.started_at,
-        profile_image_url: profileImageUrl,
+        profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
         thumbnail_url: stream.thumbnail_url
           ? stream.thumbnail_url.replace('{width}', '40').replace('{height}', '40')
           : PLACEHOLDER_IMAGE_URL(stream.user_name),
@@ -369,30 +288,28 @@ async function fetchAndFormatStreams(token) {
         tags: stream.tags || []
       };
     });
-
-    // 重複を除去（streamのIDをキーにして）
-    const uniqueStreamIds = new Set();
-    const filteredStreams = formattedStreams.filter(stream => {
-      if (uniqueStreamIds.has(stream.id)) {
-        console.log(`重複を検出: ${stream.user_name} (ID: ${stream.id})`);
-        return false;
-      }
-      uniqueStreamIds.add(stream.id);
-      return true;
-    });
-
+    
     // 視聴者数でソート
-    filteredStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+    //　formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
     
-    // ログ出力（デバッグ用）
-    console.log(`Filtered unique streams: ${filteredStreams.length}`);
-    
-    // サンプルデータ出力（デバッグ用）
-    if (filteredStreams.length > 0) {
-      console.log('Sample stream profile image URL:', filteredStreams[0].profile_image_url);
-    }
+   //　 return formattedStreams;
 
-    return filteredStreams;
+
+// 重複を除去（streamのIDをキーにして）
+const uniqueStreamIds = new Set();
+const filteredStreams = formattedStreams.filter(stream => {
+  if (uniqueStreamIds.has(stream.id)) {
+    console.log(`重複を検出: ${stream.user_name} (ID: ${stream.id})`);
+    return false;
+  }
+  uniqueStreamIds.add(stream.id);
+  return true;
+});
+
+// 視聴者数でソート
+filteredStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+
+return filteredStreams;
     
   } catch (error) {
     console.error('Error fetching and formatting streams:', error);
@@ -423,12 +340,7 @@ module.exports = async (req, res) => {
     // キャッシュをチェック
     if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
       console.log('Using cached data');
-      // キャッシュデータの長さが少なすぎる場合はキャッシュを無視
-      if (cachedData.length < 90) {
-        console.log(`Cached data has only ${cachedData.length} items, fetching fresh data`);
-      } else {
-        return res.status(200).json(cachedData);
-      }
+      return res.status(200).json(cachedData);
     }
     
     // 新しいデータを取得
@@ -439,41 +351,18 @@ module.exports = async (req, res) => {
       token = await getTwitchToken();
     } catch (error) {
       console.error('Failed to get token:', error.message);
-      
-      // キャッシュがあれば古いデータでも返す
-      if (cachedData && cachedData.length > 0) {
-        console.log('Returning cached data due to token error');
-        return res.status(200).json(cachedData);
-      }
-      
       return res.status(error.statusCode || 500).json({ error: 'Authentication failed' });
     }
     
     const streams = await fetchAndFormatStreams(token);
     
-    // キャッシュを更新 (データが十分にある場合のみ)
-    if (streams.length >= 90) {
-      cachedData = streams;
-      cacheTime = Date.now();
-      console.log(`Updated cache with ${streams.length} streams`);
-    } else if (!cachedData || cachedData.length < streams.length) {
-      // 既存のキャッシュがない、または現在のデータの方が多い場合はキャッシュ更新
-      cachedData = streams;
-      cacheTime = Date.now();
-      console.log(`Updated cache with limited data (${streams.length} streams)`);
-    } else {
-      console.log(`New data has only ${streams.length} streams, keeping existing cache with ${cachedData.length} streams`);
-    }
+    // キャッシュを更新
+    cachedData = streams;
+    cacheTime = Date.now();
     
-    return res.status(200).json(streams.length >= 90 ? streams : (cachedData || streams));
+    return res.status(200).json(streams);
   } catch (error) {
     console.error('Error:', error.message, error.statusCode);
-    
-    // エラー時も既存のキャッシュがあれば返す
-    if (cachedData && cachedData.length > 0) {
-      console.log('Returning cached data due to API error');
-      return res.status(200).json(cachedData);
-    }
     
     if (error instanceof TwitchAPIError) {
       return res.status(error.statusCode).json({ 
