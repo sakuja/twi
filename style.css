@@ -228,6 +228,9 @@ footer {
 }
 /* style.cssに追加・修正するコード */
 
+
+/* style.cssに追加・修正するコード */
+
 /* レスポンシブデザインの強化 */
 @media (max-width: 768px) {
     .container {
@@ -236,19 +239,30 @@ footer {
     
     /* テーブルセルのパディング調整 */
     th, td {
-        padding: 8px 5px;
+        padding: 8px 3px;
     }
     
-    /* 配信者カラムの最大幅を制限 */
-    tbody td:nth-child(2) {
+    /* 順位カラムの幅を縮小 */
+    tbody td:first-child, thead th:first-child {
+        width: 30px;
+        min-width: 30px;
+        max-width: 30px;
+        padding-left: 10px;
+        padding-right: 0;
+    }
+    
+    /* 配信者カラムの幅調整 */
+    tbody td:nth-child(2), thead th:nth-child(2) {
+        width: 110px;
+        min-width: 110px;
         max-width: 110px;
+        padding-left: 0;
     }
     
     /* タイトルカラムの調整 */
-    tbody td:nth-child(3) {
+    tbody td:nth-child(3), thead th:nth-child(3) {
         position: relative;
         padding-bottom: 20px; /* 配信時間のためのスペース */
-        max-width: 150px;
         word-break: break-word;
     }
     
@@ -262,9 +276,11 @@ footer {
     }
     
     /* 視聴者数カラムの幅調整 */
-    tbody td:nth-child(5) {
-        min-width: 60px;
+    tbody td:nth-child(5), thead th:nth-child(5) {
+        width: 70px;
+        min-width: 70px;
         text-align: right;
+        padding-right: 10px;
     }
     
     /* ストリーマーのサムネイル調整 */
@@ -272,6 +288,14 @@ footer {
         width: 30px;
         height: 30px;
         margin-right: 5px;
+    }
+    
+    /* ストリーマーセルの調整 */
+    .streamer-cell {
+        display: flex;
+        align-items: center;
+        padding-left: 0;
+        margin-left: 0;
     }
     
     /* ヘッダーの調整 */
@@ -282,6 +306,7 @@ footer {
     /* テーブルヘッダーのテキストサイズ調整 */
     thead th {
         font-size: 0.9rem;
+        padding: 8px 3px;
     }
     
     /* ゲーム列は非表示のままだが、既存のセレクタを確認 */
@@ -289,10 +314,19 @@ footer {
         display: none;
     }
     
-    /* 横スクロールを有効にしてテーブルが切れないようにする */
+    /* テーブルレイアウトの固定 */
     table {
         table-layout: fixed;
         width: 100%;
+    }
+    
+    /* セル内のテキスト調整 */
+    .streamer-cell span {
+        max-width: 70px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
     }
     
     /* テーブルコンテナに横スクロールを設定 */
