@@ -116,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // テーブルを更新する関数
     function updateTable(data) {
         console.log('Updating table with data');
+
+        // タイトルを省略する関数を追加
+　　function truncateTitle(title, maxLength = 30) {
+    if (!title) return 'No Title';
+    if (title.length <= maxLength) return title;
+    return title.substring(0, maxLength) + '...';
+}
         
         // テーブルの内容をクリア
         rankingsBody.innerHTML = '';
@@ -155,8 +162,8 @@ row.innerHTML = `
     </td>
     <td>
         <div style="position: relative;">
-            <a href="${twitchUrl}" target="_blank" class="game-link">
-                ${stream.title || 'No Title'}
+            <a href="${twitchUrl}" target="_blank" class="game-link" title="${stream.title || 'No Title'}">
+                ${truncateTitle(stream.title, 30)}
             </a>
             <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
         </div>
