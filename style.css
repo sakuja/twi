@@ -405,7 +405,7 @@ th:nth-child(2), td:nth-child(2) {  /* 配信者列 */
 
 
 th:nth-child(3), td:nth-child(3) {  /* タイトル列 */
-    width: 500px;  /* 残りのスペースを使用 */
+    width: auto;  /* 残りのスペースを使用 */
 }
 
 th:nth-child(4), td:nth-child(4) {  /* 視聴者数列 */
