@@ -594,6 +594,6 @@ header {
 
 /* ページネーションコンテナも同様に */
 .pagination-container {
-    max-width: 900px;
+    max-width: 980px;
     margin: 0 auto 20px;
 }
