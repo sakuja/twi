@@ -163,7 +163,7 @@ row.innerHTML = `
     <td>
         <div style="position: relative;">
             <a href="${twitchUrl}" target="_blank" class="game-link" title="${stream.title || 'No Title'}">
-                ${truncateTitle(stream.title, 80)} //変更点 30→80
+                ${truncateTitle(stream.title, 80)}
             </a>
             <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
         </div>
