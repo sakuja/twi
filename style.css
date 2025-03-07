@@ -232,7 +232,7 @@ footer {
 /* style.cssに追加・修正するコード */
 
 /* レスポンシブデザインの強化 */
-@media (max-width: 568px) {
+@media (max-width: 768px) {
     .container {
         padding: 10px 5px;
     }
