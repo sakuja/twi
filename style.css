@@ -468,3 +468,63 @@ th:nth-child(4), td:nth-child(4) {  /* 視聴者数列 */
         max-width: 70px;
     }
 }
+
+
+
+
+
+
+
+/* style.cssに追加するコード */
+
+/* タイトル列の省略表示設定 */
+th:nth-child(3), td:nth-child(3) {
+    width: auto;
+    overflow: hidden;
+}
+
+td:nth-child(3) a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+}
+
+/* スマホ表示の調整 */
+@media (max-width: 768px) {
+    /* 視聴者数を必ず表示 */
+    th:nth-child(4), td:nth-child(4) {
+        display: table-cell;
+        width: 60px;
+        min-width: 60px;
+        max-width: 60px;
+        text-align: right;
+        padding-right: 10px;
+    }
+    
+    /* 列の幅調整 */
+    th:first-child, td:first-child {
+        width: 25px;
+        min-width: 25px;
+        max-width: 25px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    th:nth-child(2), td:nth-child(2) {
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+    }
+    
+    /* テーブル全体の横スクロールをなくす */
+    .container {
+        overflow-x: visible;
+    }
+    
+    /* タイトル列を調整 */
+    th:nth-child(3), td:nth-child(3) {
+        width: auto;
+    }
+}
