@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -235,6 +235,7 @@ footer {
 @media (max-width: 768px) {
     .container {
         padding: 10px 5px;
+        
     }
     
     /* テーブルセルのパディング調整 */
