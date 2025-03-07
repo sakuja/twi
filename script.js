@@ -134,34 +134,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // 行の内容を作成
-            row.innerHTML = `
-                <td>${rank}</td>
-                <td>
-                    <a href="${twitchUrl}" target="_blank" class="streamer-link">
-                        <div class="streamer-cell">
-                            <img src="${stream.profile_image_url}" 
-                                 alt="" 
-                                 class="streamer-thumbnail"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
-                            <span>${stream.user_name}</span>
-                        </div>
-                    </a>
-                </td>
-                <td>
-                    <div style="position: relative;">
-                        <a href="${twitchUrl}" target="_blank" class="game-link">
-                            ${stream.title || 'No Title'}
-                        </a>
-                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
-                    </div>
-                </td>
-                <td>
-                    <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="category-link">
-                        ${stream.game_name || 'その他'}
-                    </a>
-                </td>
-                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-            `;
+// script.jsの行生成部分（updateTable関数内）を以下のように修正：
+row.innerHTML = `
+    <td>${rank}</td>
+    <td>
+        <a href="${twitchUrl}" target="_blank" class="streamer-link">
+            <div class="streamer-cell">
+                <img src="${stream.profile_image_url}" 
+                     alt="" 
+                     class="streamer-thumbnail"
+                     onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
+                <div class="streamer-info">
+                    <div class="streamer-name">${stream.user_name}</div>
+                    <div class="streamer-category">${stream.game_name || 'その他'}</div>
+                </div>
+            </div>
+        </a>
+    </td>
+    <td>
+        <div style="position: relative;">
+            <a href="${twitchUrl}" target="_blank" class="game-link">
+                ${stream.title || 'No Title'}
+            </a>
+            <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
+        </div>
+    </td>
+    <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+`;
             
             rankingsBody.appendChild(row);
         });
