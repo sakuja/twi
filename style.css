@@ -349,3 +349,34 @@ footer {
         display: inline-block;
     }
 }
+
+
+/* style.cssに追加するコード */
+
+/* ストリーマー名とカテゴリのリンクスタイル */
+.streamer-name {
+    font-weight: 500;
+    line-height: 1.2;
+    text-decoration: none;
+    color: #333;
+    display: block;
+}
+
+.streamer-name:hover {
+    text-decoration: underline;
+    color: #9147ff;
+}
+
+.streamer-category {
+    font-size: 0.75rem;
+    color: #6441a5;
+    line-height: 1.2;
+    margin-top: 2px;
+    text-decoration: none;
+    display: block;
+}
+
+.streamer-category:hover {
+    text-decoration: underline;
+    color: #9147ff;
+}
