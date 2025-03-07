@@ -1,243 +1,89 @@
-/* 全体のスタイル */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* style.cssに追加・修正するコード */
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f5f5f5;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* ヘッダー */
-header {
-    background-color: #6441a5; /* Twitchのブランドカラー */
-    color: white;
-    text-align: center;
-    padding: 2rem 0;
-}
-
-header h1 {
-    margin-bottom: 10px;
-    font-size: 2.5rem;
-}
-
-#last-updated {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-/* ローディングとエラー表示 */
-.loading, .error {
-    text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
-}
-
-.error {
-    color: #e53935;
-}
-
-/* ページネーション */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.pagination-button {
-    background-color: #f2f2f2;
-    border: 1px solid #ddd;
-    color: #333;
-    padding: 8px 16px;
-    margin: 0 5px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.pagination-button:hover {
-    background-color: #e0e0e0;
-}
-
-.pagination-button.active {
-    background-color: #6441a5;
-    color: white;
-    border-color: #6441a5;
-}
-
-/* テーブルスタイル */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-thead {
-    background-color: #6441a5;
-    color: white;
-}
-
-th, td {
-    padding: 12px 15px;
-    text-align: left;
-}
-
-tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-tbody tr:hover {
-    background-color: #e6e6fa;
-}
-
-/* 上位3位のハイライト */
-tr.top-rank td:first-child {
-    font-weight: bold;
-    color: #6441a5;
-}
-
-/* ストリーマーセルのスタイル */
-.streamer-cell {
-    display: flex;
-    align-items: center;
-}
-
-.streamer-thumbnail {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-/* 視聴者数のスタイル */
-.viewer-count {
-    font-weight: bold;
-    text-align: right;
-}
-
-/* フッター */
-footer {
-    text-align: center;
-    padding: 1rem 0;
-    color: #777;
-    font-size: 0.9rem;
-    margin-top: 2rem;
-}
-
-/* リンクスタイル */
-.streamer-link, .game-link {
-    color: inherit;
-    text-decoration: none;
-    display: block;
-}
-
-.streamer-link:hover, .game-link:hover {
-    text-decoration: underline;
-    color: #9147ff; /* Twitchの紫色 */
-}
-
-/* ストリーマーセルのスタイル調整 */
-.streamer-cell {
-    display: flex;
-    align-items: center;
-}
-
-.streamer-thumbnail {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.avatar-placeholder {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    background-color: #6441a5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.avatar-image {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-    border: 2px solid #6441a5;
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 18px;
-    border: 2px solid #fff;
-}
-
-.category-link {
-    color: #6441a5;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.category-link:hover {
-    color: #9147ff;
-    text-decoration: underline;
-}
-
-.stream-duration {
-    display: inline-block;
-    font-size: 0.7rem;
-    color: #808080;
-    background-color: none;
-    padding: 1px 4px;
-    font-weight: normal;
-    z-index: 1;
-}
-
-.game-link {
-    color: inherit;
-    text-decoration: none;
-    display: block;
-    padding-bottom: 15px; /* 配信時間のためのスペースを確保 */
-}
-
-/* レスポンシブデザイン */
+/* レスポンシブデザインの強化 */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 10px 5px;
     }
     
+    /* テーブルセルのパディング調整 */
     th, td {
-        padding: 8px 10px;
+        padding: 8px 5px;
     }
     
+    /* 配信者カラムの最大幅を制限 */
+    tbody td:nth-child(2) {
+        max-width: 110px;
+    }
+    
+    /* タイトルカラムの調整 */
+    tbody td:nth-child(3) {
+        position: relative;
+        padding-bottom: 20px; /* 配信時間のためのスペース */
+        max-width: 150px;
+        word-break: break-word;
+    }
+    
+    /* 配信時間の位置調整 */
+    .stream-duration {
+        position: absolute;
+        bottom: 2px;
+        right: 5px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+    
+    /* 視聴者数カラムの幅調整 */
+    tbody td:nth-child(5) {
+        min-width: 60px;
+        text-align: right;
+    }
+    
+    /* ストリーマーのサムネイル調整 */
+    .streamer-thumbnail {
+        width: 30px;
+        height: 30px;
+        margin-right: 5px;
+    }
+    
+    /* ヘッダーの調整 */
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    /* テーブルヘッダーのテキストサイズ調整 */
+    thead th {
+        font-size: 0.9rem;
+    }
+    
+    /* ゲーム列は非表示のままだが、既存のセレクタを確認 */
     th:nth-child(4), td:nth-child(4) {
-        display: none; /* モバイルではゲーム列を非表示 */
+        display: none;
+    }
+    
+    /* 横スクロールを有効にしてテーブルが切れないようにする */
+    table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    
+    /* テーブルコンテナに横スクロールを設定 */
+    .container {
+        overflow-x: auto;
+    }
+}
+
+/* さらに小さい画面用の調整 */
+@media (max-width: 480px) {
+    tbody td:nth-child(3) {
+        max-width: 120px;
+    }
+    
+    .streamer-cell span {
+        max-width: 70px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
     }
 }
