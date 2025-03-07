@@ -398,9 +398,9 @@ th:first-child, td:first-child {  /* # 列 */
 }
 
 th:nth-child(2), td:nth-child(2) {  /* 配信者列 */
-    width: 140px;
-    min-width: 140px;
-    max-width: 140px;
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
 }
 
 th:nth-child(3), td:nth-child(3) {  /* タイトル列 */
