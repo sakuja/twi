@@ -586,11 +586,11 @@ td:nth-child(3) a {
     }
 }
 
-/* ヘッダー幅も調整 */
+/* ヘッダー幅も調整 
 header {
     max-width: 900px;
     margin: 0 auto;
-}
+}*/
 
 /* ページネーションコンテナも同様に */
 .pagination-container {
