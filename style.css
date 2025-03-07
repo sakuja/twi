@@ -530,3 +530,70 @@ td:nth-child(3) a {
         width: auto;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* style.cssに追加するコード */
+
+/* コンテナの最大幅を制限 */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 大画面でのテーブル幅設定 */
+@media (min-width: 769px) {
+    table {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    /* 列の幅調整 */
+    th:first-child, td:first-child {  /* # 列 */
+        width: 40px;
+        min-width: 40px;
+        max-width: 40px;
+    }
+    
+    th:nth-child(2), td:nth-child(2) {  /* 配信者列 */
+        width: 160px;
+        min-width: 160px;
+        max-width: 160px;
+    }
+    
+    th:nth-child(3), td:nth-child(3) {  /* タイトル列 */
+        width: auto;
+        max-width: calc(100% - 340px); /* 他の列の合計幅を引いた値 */
+    }
+    
+    th:nth-child(4), td:nth-child(4) {  /* 視聴者数列 */
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        text-align: right;
+    }
+}
+
+/* ヘッダー幅も調整 */
+header {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ページネーションコンテナも同様に */
+.pagination-container {
+    max-width: 900px;
+    margin: 0 auto 20px;
+}
