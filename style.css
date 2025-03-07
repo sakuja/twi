@@ -380,3 +380,91 @@ footer {
     text-decoration: underline;
     color: #9147ff;
 }
+
+
+/* style.cssに追加するコード */
+
+/* テーブルのレイアウトを固定に設定 */
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* 列の幅を明確に指定 */
+th:first-child, td:first-child {  /* # 列 */
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+}
+
+th:nth-child(2), td:nth-child(2) {  /* 配信者列 */
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+}
+
+th:nth-child(3), td:nth-child(3) {  /* タイトル列 */
+    width: auto;  /* 残りのスペースを使用 */
+}
+
+th:nth-child(4), td:nth-child(4) {  /* 視聴者数列 */
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: right;
+}
+
+/* 配信者セル内の要素が確実に収まるようにする */
+.streamer-cell {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ストリーマー情報のコンテナ */
+.streamer-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
+/* ストリーマー名が長い場合は省略表示 */
+.streamer-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+/* カテゴリも同様に */
+.streamer-category {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+/* モバイル向け調整 */
+@media (max-width: 768px) {
+    th:first-child, td:first-child {  /* # 列 */
+        width: 30px;
+        min-width: 30px;
+        max-width: 30px;
+    }
+    
+    th:nth-child(2), td:nth-child(2) {  /* 配信者列 */
+        width: 120px;
+        min-width: 120px;
+        max-width: 120px;
+    }
+    
+    th:nth-child(4), td:nth-child(4) {  /* 視聴者数列 */
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+    }
+}
