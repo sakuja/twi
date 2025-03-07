@@ -138,18 +138,20 @@ document.addEventListener('DOMContentLoaded', () => {
 row.innerHTML = `
     <td>${rank}</td>
     <td>
-        <a href="${twitchUrl}" target="_blank" class="streamer-link">
-            <div class="streamer-cell">
-                <img src="${stream.profile_image_url}" 
-                     alt="" 
-                     class="streamer-thumbnail"
-                     onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
-                <div class="streamer-info">
-                    <div class="streamer-name">${stream.user_name}</div>
-                    <div class="streamer-category">${stream.game_name || 'その他'}</div>
-                </div>
+        <div class="streamer-cell">
+            <img src="${stream.profile_image_url}" 
+                 alt="" 
+                 class="streamer-thumbnail"
+                 onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
+            <div class="streamer-info">
+                <a href="${twitchUrl}" target="_blank" class="streamer-name">
+                    ${stream.user_name}
+                </a>
+                <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="streamer-category">
+                    ${stream.game_name || 'その他'}
+                </a>
             </div>
-        </a>
+        </div>
     </td>
     <td>
         <div style="position: relative;">
