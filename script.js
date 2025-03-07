@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Updating table with data');
 
         // タイトルを省略する関数を追加
-　　function truncateTitle(title, maxLength = 50) {
+　　function truncateTitle(title, maxLength = 30) {
     if (!title) return 'No Title';
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
