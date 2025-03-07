@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Updating table with data');
 
         // タイトルを省略する関数を追加
-　　function truncateTitle(title, maxLength = 80) {
+　　function truncateTitle(title, maxLength = 80) { //変更点 30→80
     if (!title) return 'No Title';
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
@@ -163,7 +163,7 @@ row.innerHTML = `
     <td>
         <div style="position: relative;">
             <a href="${twitchUrl}" target="_blank" class="game-link" title="${stream.title || 'No Title'}">
-                ${truncateTitle(stream.title, 80)}
+                ${truncateTitle(stream.title, 80)} //変更点 30→80
             </a>
             <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
         </div>
