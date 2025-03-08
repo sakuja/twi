@@ -3,20 +3,33 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
+
+// 環境変数を読み込む
 require('dotenv').config();
+
+// 環境変数から設定を取得
+const PORT = process.env.PORT || 3000;
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+
+// 環境変数の確認
+console.log('環境変数のステータス:');
+console.log('- PORT:', PORT);
+console.log('- TWITCH_CLIENT_ID設定済み:', !!TWITCH_CLIENT_ID);
+console.log('- TWITCH_CLIENT_SECRET設定済み:', !!TWITCH_CLIENT_SECRET);
+
+// Twitchの認証情報が設定されているか確認
+if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET) {
+    console.warn('警告: Twitch API認証情報が設定されていません。.envファイルを確認してください。');
+}
 
 // Expressアプリケーションを作成
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // ミドルウェア
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Twitch APIの認証情報
-const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
-const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 
 // TwitchのOAuthトークンを保存する変数
 let twitchToken = null;
@@ -239,10 +252,14 @@ app.get('/api/streams/category', async (req, res) => {
 // カテゴリ（ゲーム）一覧を取得するAPI
 app.get('/api/categories', async (req, res) => {
     try {
+        console.log('カテゴリ一覧の取得を開始します');
+        
         // 認証トークンを取得
         const token = await getTwitchToken();
+        console.log('認証トークンを取得しました');
         
         // 人気のゲームを取得
+        console.log('Twitch APIにリクエストを送信します');
         const response = await axios.get('https://api.twitch.tv/helix/games/top', {
             headers: {
                 'Client-ID': TWITCH_CLIENT_ID,
@@ -252,6 +269,8 @@ app.get('/api/categories', async (req, res) => {
                 first: 100 // 最大100件のゲームを取得
             }
         });
+        
+        console.log(`${response.data.data.length}件のカテゴリを取得しました`);
         
         // ゲームデータを整形
         const categories = response.data.data.map(game => {
@@ -266,7 +285,25 @@ app.get('/api/categories', async (req, res) => {
         res.json(categories);
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).json({ error: 'Failed to fetch category data' });
+        // エラーの詳細をログに出力
+        if (error.response) {
+            // サーバーからのレスポンスがある場合
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+        } else if (error.request) {
+            // リクエストは送信されたがレスポンスがない場合
+            console.error('No response received');
+        } else {
+            // リクエスト設定時にエラーが発生した場合
+            console.error('Error message:', error.message);
+        }
+        
+        // クライアントにエラー情報を返す
+        res.status(500).json({ 
+            error: 'Failed to fetch category data', 
+            message: error.message,
+            details: error.response ? error.response.data : null
+        });
     }
 });
 
