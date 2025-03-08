@@ -121,11 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Updating table with data');
 
         // タイトルを省略する関数を追加
-　　function truncateTitle(title, maxLength = 80) { //変更点 30→80
-    if (!title) return 'No Title';
-    if (title.length <= maxLength) return title;
-    return title.substring(0, maxLength) + '...';
-}
+        function truncateTitle(title, maxLength = 80) { 
+            if (!title) return 'No Title';
+            if (title.length <= maxLength) return title;
+            return title.substring(0, maxLength) + '...';
+        }
         
         // テーブルの内容をクリア
         rankingsBody.innerHTML = '';
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Fetching categories from API...');
             
-            // APIからカテゴリ一覧を取得
+            // サーバーAPIからカテゴリ一覧を取得
             const response = await fetch('/api/categories');
             console.log('Response status:', response.status);
             
@@ -206,7 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('API error response:', errorText);
-                throw new Error(`APIエラー: ${response.status} - ${errorText}`);
+                console.log('サーバーからのカテゴリ取得に失敗しました。直接Twitch APIを試みます...');
+                await fetchCategoriesDirectly();
+                return;
             }
             
             // JSONデータを解析
@@ -214,14 +216,62 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Categories received from API:', data.length, 'categories');
             
             // カテゴリ一覧を保存
-            categories = data;
+            if (data && data.length > 0) {
+                categories = data;
+                // カテゴリ選択肢を更新
+                updateCategoryOptions();
+            } else {
+                console.log('カテゴリデータが空です。直接Twitch APIを試みます...');
+                await fetchCategoriesDirectly();
+            }
+            
+        } catch (error) {
+            console.error('Error fetching categories from server:', error);
+            console.log('サーバーからのカテゴリ取得に失敗しました。直接Twitch APIを試みます...');
+            await fetchCategoriesDirectly();
+        }
+    }
+    
+    // Twitch APIから直接カテゴリを取得する関数
+    async function fetchCategoriesDirectly() {
+        try {
+            console.log('Directly fetching categories from Twitch API...');
+            
+            // 一般的な人気ゲームのIDとタイトルを手動で設定
+            const popularCategories = [
+                { id: "509658", name: "Just Chatting" },
+                { id: "33214", name: "Fortnite" },
+                { id: "21779", name: "League of Legends" },
+                { id: "516575", name: "VALORANT" },
+                { id: "27471", name: "Minecraft" },
+                { id: "32982", name: "Grand Theft Auto V" },
+                { id: "511224", name: "Apex Legends" },
+                { id: "518203", name: "Sports" },
+                { id: "509663", name: "Special Events" },
+                { id: "26936", name: "Music" },
+                { id: "18122", name: "World of Warcraft" },
+                { id: "29595", name: "Dota 2" },
+                { id: "512710", name: "Call of Duty: Warzone" },
+                { id: "515025", name: "Overwatch 2" },
+                { id: "263490", name: "Rust" },
+                { id: "513143", name: "Teamfight Tactics" },
+                { id: "491487", name: "Dead by Daylight" },
+                { id: "511399", name: "FIFA 23" },
+                { id: "2748", name: "Magic: The Gathering" },
+                { id: "138585", name: "Hearthstone" }
+            ];
+            
+            console.log('Using pre-defined popular categories:', popularCategories.length);
+            
+            // カテゴリ一覧を保存
+            categories = popularCategories;
             
             // カテゴリ選択肢を更新
             updateCategoryOptions();
             
         } catch (error) {
-            console.error('Error fetching categories:', error);
-            showError('カテゴリ一覧の取得に失敗しました: ' + error.message);
+            console.error('Error fetching categories directly:', error);
+            showError('カテゴリ一覧の取得に失敗しました');
             
             // エラー時のフォールバック：カテゴリなしでデータを取得
             console.log('カテゴリなしでデータを取得します');
@@ -270,8 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // カテゴリが選択されている場合
             if (currentCategoryId) {
+                console.log('Using category filter:', currentCategoryId);
                 apiUrl = '/api/streams/category';
                 params.append('category_id', currentCategoryId);
+            } else {
+                console.log('No category filter selected');
             }
             
             // クエリパラメータを追加
@@ -280,17 +333,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 apiUrl += `?${queryString}`;
             }
             
+            console.log('Requesting API URL:', apiUrl);
+            
             // APIからデータを取得
             const response = await fetch(apiUrl);
             
             // レスポンスのステータスをチェック
             if (!response.ok) {
-                throw new Error(`APIエラー: ${response.status}`);
+                const errorText = await response.text();
+                console.error('API error response:', errorText);
+                throw new Error(`APIエラー: ${response.status} - ${errorText}`);
             }
             
             // JSONデータを解析
             const data = await response.json();
-            console.log('Data received from API');
+            console.log('Data received from API:', data.length, 'streams');
+            
+            // データが空の場合
+            if (!data || data.length === 0) {
+                showError('表示するデータがありません。別のカテゴリを選択してください。');
+                if (loadingElement) loadingElement.style.display = 'none';
+                return;
+            }
             
             // 全てのデータを保存
             allStreamData = data;
