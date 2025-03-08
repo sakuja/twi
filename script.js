@@ -47,10 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateTimeElement = document.getElementById('update-time');
     const page1Button = document.getElementById('page1');
     const page2Button = document.getElementById('page2');
+    const categorySelect = document.getElementById('category-select');
     
     // 現在のページ状態を保持
     let currentPage = 1; // デフォルトは1ページ目
     let allStreamData = []; // 全てのストリームデータを保持
+    let currentCategoryId = ''; // 現在選択されているカテゴリID
+    let categories = []; // カテゴリ一覧を保持
     
     // 数値をフォーマットする関数
     function formatNumber(num) {
@@ -141,35 +144,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // 行の内容を作成
-// script.jsの行生成部分（updateTable関数内）を以下のように修正：
-row.innerHTML = `
-    <td>${rank}</td>
-    <td>
-        <div class="streamer-cell">
-            <img src="${stream.profile_image_url}" 
-                 alt="" 
-                 class="streamer-thumbnail"
-                 onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
-            <div class="streamer-info">
-                <a href="${twitchUrl}" target="_blank" class="streamer-name">
-                    ${stream.user_name}
-                </a>
-                <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="streamer-category">
-                    ${stream.game_name || 'その他'}
-                </a>
-            </div>
-        </div>
-    </td>
-    <td>
-        <div style="position: relative;">
-            <a href="${twitchUrl}" target="_blank" class="game-link" title="${stream.title || 'No Title'}">
-                ${truncateTitle(stream.title, 80)}
-            </a>
-            <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
-        </div>
-    </td>
-    <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
-`;
+            row.innerHTML = `
+                <td>${rank}</td>
+                <td>
+                    <div class="streamer-cell">
+                        <img src="${stream.profile_image_url || stream.thumbnail_url}" 
+                             alt="" 
+                             class="streamer-thumbnail"
+                             onerror="this.onerror=null; this.src='https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${stream.user_name.charAt(0).toUpperCase()}';">
+                        <div class="streamer-info">
+                            <a href="${twitchUrl}" target="_blank" class="streamer-name">
+                                ${stream.user_name}
+                            </a>
+                            <a href="https://www.twitch.tv/directory/game/${encodeURIComponent(stream.game_name)}" target="_blank" class="streamer-category">
+                                ${stream.game_name || 'その他'}
+                            </a>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="position: relative;">
+                        <a href="${twitchUrl}" target="_blank" class="game-link" title="${stream.title || 'No Title'}">
+                            ${truncateTitle(stream.title, 80)}
+                        </a>
+                        <span class="stream-duration" style="position: absolute; bottom: -15px; right: 0; color: ${getDurationColor(stream.stream_duration)}">${stream.stream_duration || ''}</span>
+                    </div>
+                </td>
+                <td class="viewer-count">${formatNumber(stream.viewer_count)}</td>
+            `;
             
             rankingsBody.appendChild(row);
         });
@@ -191,6 +193,54 @@ row.innerHTML = `
         }
     }
     
+    // カテゴリ一覧を取得する関数
+    async function fetchCategories() {
+        try {
+            console.log('Fetching categories from API...');
+            
+            // APIからカテゴリ一覧を取得
+            const response = await fetch('/api/categories');
+            
+            // レスポンスのステータスをチェック
+            if (!response.ok) {
+                throw new Error(`APIエラー: ${response.status}`);
+            }
+            
+            // JSONデータを解析
+            const data = await response.json();
+            console.log('Categories received from API');
+            
+            // カテゴリ一覧を保存
+            categories = data;
+            
+            // カテゴリ選択肢を更新
+            updateCategoryOptions();
+            
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            showError('カテゴリ一覧の取得に失敗しました');
+        }
+    }
+    
+    // カテゴリ選択肢を更新する関数
+    function updateCategoryOptions() {
+        // 既存のオプションをクリア（最初のオプションは残す）
+        while (categorySelect.options.length > 1) {
+            categorySelect.remove(1);
+        }
+        
+        // カテゴリをソート（日本語名で）
+        categories.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // カテゴリをセレクトボックスに追加
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+    }
+    
     // APIからデータを取得する関数
     async function fetchData() {
         try {
@@ -201,8 +251,24 @@ row.innerHTML = `
             
             console.log('Fetching data from API...');
             
+            // APIエンドポイントとパラメータを設定
+            let apiUrl = '/api/streams';
+            let params = new URLSearchParams();
+            
+            // カテゴリが選択されている場合
+            if (currentCategoryId) {
+                apiUrl = '/api/streams/category';
+                params.append('category_id', currentCategoryId);
+            }
+            
+            // クエリパラメータを追加
+            const queryString = params.toString();
+            if (queryString) {
+                apiUrl += `?${queryString}`;
+            }
+            
             // APIからデータを取得
-            const response = await fetch('/api/streams');
+            const response = await fetch(apiUrl);
             
             // レスポンスのステータスをチェック
             if (!response.ok) {
@@ -225,12 +291,35 @@ row.innerHTML = `
         }
     }
     
-    // 初回データ取得の前にページネーションをセットアップ
-    setupPagination();
+    // フィルター変更時のイベントハンドラを設定
+    function setupFilterHandlers() {
+        // カテゴリ選択変更時
+        categorySelect.addEventListener('change', () => {
+            currentCategoryId = categorySelect.value;
+            currentPage = 1; // ページを1に戻す
+            updatePageButtons();
+            fetchData(); // データを再取得
+        });
+    }
     
-    // 初回データ取得
-    fetchData();
+    // 初期化処理
+    function init() {
+        // ページネーションをセットアップ
+        setupPagination();
+        
+        // フィルターハンドラをセットアップ
+        setupFilterHandlers();
+        
+        // カテゴリ一覧を取得
+        fetchCategories();
+        
+        // 初回データ取得
+        fetchData();
+        
+        // 60秒ごとにデータを更新
+        setInterval(fetchData, 60000);
+    }
     
-    // 60秒ごとにデータを更新
-    setInterval(fetchData, 60000);
+    // 初期化を実行
+    init();
 });
