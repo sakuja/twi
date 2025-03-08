@@ -1,36 +1,36 @@
-// •K—v‚Èƒ‚ƒWƒ…[ƒ‹‚ğƒCƒ“ƒ|[ƒg
+// å¿…è¦ãªãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’ã‚¤ãƒ³ãƒãƒ¼ãƒˆ
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-// ExpressƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ğì¬
+// Expressã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ä½œæˆ
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ƒ~ƒhƒ‹ƒEƒFƒA
+// ãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Twitch API‚Ì”FØî•ñ
+// Twitch APIã®èªè¨¼æƒ…å ±
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 
-// Twitch‚ÌOAuthƒg[ƒNƒ“‚ğ•Û‘¶‚·‚é•Ï”
+// Twitchã®OAuthãƒˆãƒ¼ã‚¯ãƒ³ã‚’ä¿å­˜ã™ã‚‹å¤‰æ•°
 let twitchToken = null;
 let tokenExpiry = null;
 
-// Twitch‚Ì”FØƒg[ƒNƒ“‚ğæ“¾‚·‚éŠÖ”
+// Twitchã®èªè¨¼ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 async function getTwitchToken() {
-    // ƒg[ƒNƒ“‚ª—LŒø‚È‚çÄ—˜—p
+    // ãƒˆãƒ¼ã‚¯ãƒ³ãŒæœ‰åŠ¹ãªã‚‰å†åˆ©ç”¨
     if (twitchToken && tokenExpiry && Date.now() < tokenExpiry) {
         return twitchToken;
     }
     
     try {
-        // Twitch‚Ì”FØAPI‚ÉƒŠƒNƒGƒXƒg
+        // Twitchã®èªè¨¼APIã«ãƒªã‚¯ã‚¨ã‚¹ãƒˆ
         const response = await axios.post(`https://id.twitch.tv/oauth2/token`, null, {
             params: {
                 client_id: TWITCH_CLIENT_ID,
@@ -39,10 +39,10 @@ async function getTwitchToken() {
             }
         });
         
-        // ƒg[ƒNƒ“‚ğ•Û‘¶
+        // ãƒˆãƒ¼ã‚¯ãƒ³ã‚’ä¿å­˜
         twitchToken = response.data.access_token;
-        // —LŒøŠúŒÀ‚ğİ’èi’Êí‚Í–ñ60“ú‚¾‚ªA”O‚Ì‚½‚ß­‚µ’Z‚ß‚Éİ’èj
-        tokenExpiry = Date.now() + (response.data.expires_in * 900); // 90%‚ÌŠÔ‚ğg—p
+        // æœ‰åŠ¹æœŸé™ã‚’è¨­å®šï¼ˆé€šå¸¸ã¯ç´„60æ—¥ã ãŒã€å¿µã®ãŸã‚å°‘ã—çŸ­ã‚ã«è¨­å®šï¼‰
+        tokenExpiry = Date.now() + (response.data.expires_in * 900); // 90%ã®æ™‚é–“ã‚’ä½¿ç”¨
         
         return twitchToken;
     } catch (error) {
@@ -51,28 +51,28 @@ async function getTwitchToken() {
     }
 }
 
-// Twitch‚ÌƒXƒgƒŠ[ƒ~ƒ“ƒOƒf[ƒ^‚ğæ“¾‚·‚éAPI
+// Twitchã®ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹API
 app.get('/api/streams', async (req, res) => {
     try {
-        // ”FØƒg[ƒNƒ“‚ğæ“¾
+        // èªè¨¼ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—
         const token = await getTwitchToken();
         
-        // Twitch API‚ÉƒŠƒNƒGƒXƒgiƒgƒbƒvƒXƒgƒŠ[ƒ€‚ğæ“¾j
+        // Twitch APIã«ãƒªã‚¯ã‚¨ã‚¹ãƒˆï¼ˆãƒˆãƒƒãƒ—ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’å–å¾—ï¼‰
         const response = await axios.get('https://api.twitch.tv/helix/streams', {
             headers: {
                 'Client-ID': TWITCH_CLIENT_ID,
                 'Authorization': `Bearer ${token}`
             },
             params: {
-                first: 100 // Å‘å100Œ‚ÌƒXƒgƒŠ[ƒ€‚ğæ“¾
+                first: 100 // æœ€å¤§100ä»¶ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’å–å¾—
             }
         });
         
-        // ƒ†[ƒU[î•ñ‚ÆƒQ[ƒ€î•ñ‚ğæ“¾‚·‚é‚½‚ß‚ÌID‚ğW‚ß‚é
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼æƒ…å ±ã¨ã‚²ãƒ¼ãƒ æƒ…å ±ã‚’å–å¾—ã™ã‚‹ãŸã‚ã®IDã‚’é›†ã‚ã‚‹
         const userIds = response.data.data.map(stream => stream.user_id);
         const gameIds = [...new Set(response.data.data.map(stream => stream.game_id).filter(id => id))];
         
-        // ƒ†[ƒU[î•ñ‚ğæ“¾
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼æƒ…å ±ã‚’å–å¾—
         const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
             headers: {
                 'Client-ID': TWITCH_CLIENT_ID,
@@ -83,7 +83,7 @@ app.get('/api/streams', async (req, res) => {
             }
         });
         
-        // ƒQ[ƒ€î•ñ‚ğæ“¾
+        // ã‚²ãƒ¼ãƒ æƒ…å ±ã‚’å–å¾—
         const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
             headers: {
                 'Client-ID': TWITCH_CLIENT_ID,
@@ -94,19 +94,19 @@ app.get('/api/streams', async (req, res) => {
             }
         });
         
-        // ƒ†[ƒU[ƒf[ƒ^‚ğƒ}ƒbƒv
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
         const usersMap = {};
         usersResponse.data.data.forEach(user => {
             usersMap[user.id] = user;
         });
         
-        // ƒQ[ƒ€ƒf[ƒ^‚ğƒ}ƒbƒv
+        // ã‚²ãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
         const gamesMap = {};
         gamesResponse.data.data.forEach(game => {
             gamesMap[game.id] = game;
         });
         
-        // ƒXƒgƒŠ[ƒ€ƒf[ƒ^‚ğ®Œ`
+        // ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’æ•´å½¢
         const streams = response.data.data.map(stream => {
             const user = usersMap[stream.user_id] || {};
             const game = gamesMap[stream.game_id] || {};
@@ -127,10 +127,10 @@ app.get('/api/streams', async (req, res) => {
             };
         });
         
-        // ‹’®Ò”‚Åƒ\[ƒg
+        // è¦–è´è€…æ•°ã§ã‚½ãƒ¼ãƒˆ
         streams.sort((a, b) => b.viewer_count - a.viewer_count);
         
-        // ƒNƒ‰ƒCƒAƒ“ƒg‚ÉŒ‹‰Ê‚ğ•Ô‚·
+        // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«çµæœã‚’è¿”ã™
         res.json(streams);
     } catch (error) {
         console.error('Error fetching streams:', error);
@@ -138,7 +138,139 @@ app.get('/api/streams', async (req, res) => {
     }
 });
 
-// ƒT[ƒo[‚ğ‹N“®
+// Twitchã®ã‚«ãƒ†ã‚´ãƒªåˆ¥ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹API
+app.get('/api/streams/category', async (req, res) => {
+    try {
+        // ã‚«ãƒ†ã‚´ãƒªIDã‚’ã‚¯ã‚¨ãƒªãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‹ã‚‰å–å¾—
+        const categoryId = req.query.category_id;
+        
+        // èªè¨¼ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—
+        const token = await getTwitchToken();
+        
+        // ãƒªã‚¯ã‚¨ã‚¹ãƒˆãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨­å®š
+        const params = {
+            first: 100 // æœ€å¤§100ä»¶ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’å–å¾—
+        };
+        
+        // ã‚«ãƒ†ã‚´ãƒªIDãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã¯è¿½åŠ 
+        if (categoryId) {
+            params.game_id = categoryId;
+        }
+        
+        // Twitch APIã«ãƒªã‚¯ã‚¨ã‚¹ãƒˆï¼ˆæŒ‡å®šã•ã‚ŒãŸã‚«ãƒ†ã‚´ãƒªã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’å–å¾—ï¼‰
+        const response = await axios.get('https://api.twitch.tv/helix/streams', {
+            headers: {
+                'Client-ID': TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${token}`
+            },
+            params: params
+        });
+        
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼æƒ…å ±ã¨ã‚²ãƒ¼ãƒ æƒ…å ±ã‚’å–å¾—ã™ã‚‹ãŸã‚ã®IDã‚’é›†ã‚ã‚‹
+        const userIds = response.data.data.map(stream => stream.user_id);
+        const gameIds = [...new Set(response.data.data.map(stream => stream.game_id).filter(id => id))];
+        
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼æƒ…å ±ã‚’å–å¾—
+        const usersResponse = await axios.get('https://api.twitch.tv/helix/users', {
+            headers: {
+                'Client-ID': TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${token}`
+            },
+            params: {
+                id: userIds.join(',')
+            }
+        });
+        
+        // ã‚²ãƒ¼ãƒ æƒ…å ±ã‚’å–å¾—
+        const gamesResponse = await axios.get('https://api.twitch.tv/helix/games', {
+            headers: {
+                'Client-ID': TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${token}`
+            },
+            params: {
+                id: gameIds.join(',')
+            }
+        });
+        
+        // ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
+        const usersMap = {};
+        usersResponse.data.data.forEach(user => {
+            usersMap[user.id] = user;
+        });
+        
+        // ã‚²ãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ—
+        const gamesMap = {};
+        gamesResponse.data.data.forEach(game => {
+            gamesMap[game.id] = game;
+        });
+        
+        // ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’æ•´å½¢
+        const streams = response.data.data.map(stream => {
+            const user = usersMap[stream.user_id] || {};
+            const game = gamesMap[stream.game_id] || {};
+            
+            return {
+                id: stream.id,
+                user_id: stream.user_id,
+                user_name: stream.user_name,
+                user_login: stream.user_login,
+                game_id: stream.game_id,
+                game_name: game.name || 'Unknown Game',
+                title: stream.title,
+                viewer_count: stream.viewer_count,
+                started_at: stream.started_at,
+                language: stream.language,
+                thumbnail_url: user.profile_image_url || '',
+                tags: stream.tags || []
+            };
+        });
+        
+        // è¦–è´è€…æ•°ã§ã‚½ãƒ¼ãƒˆ
+        streams.sort((a, b) => b.viewer_count - a.viewer_count);
+        
+        // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«çµæœã‚’è¿”ã™
+        res.json(streams);
+    } catch (error) {
+        console.error('Error fetching category streams:', error);
+        res.status(500).json({ error: 'Failed to fetch category stream data' });
+    }
+});
+
+// ã‚«ãƒ†ã‚´ãƒªï¼ˆã‚²ãƒ¼ãƒ ï¼‰ä¸€è¦§ã‚’å–å¾—ã™ã‚‹API
+app.get('/api/categories', async (req, res) => {
+    try {
+        // èªè¨¼ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–å¾—
+        const token = await getTwitchToken();
+        
+        // äººæ°—ã®ã‚²ãƒ¼ãƒ ã‚’å–å¾—
+        const response = await axios.get('https://api.twitch.tv/helix/games/top', {
+            headers: {
+                'Client-ID': TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${token}`
+            },
+            params: {
+                first: 100 // æœ€å¤§100ä»¶ã®ã‚²ãƒ¼ãƒ ã‚’å–å¾—
+            }
+        });
+        
+        // ã‚²ãƒ¼ãƒ ãƒ‡ãƒ¼ã‚¿ã‚’æ•´å½¢
+        const categories = response.data.data.map(game => {
+            return {
+                id: game.id,
+                name: game.name,
+                box_art_url: game.box_art_url.replace('{width}', '138').replace('{height}', '190')
+            };
+        });
+        
+        // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«çµæœã‚’è¿”ã™
+        res.json(categories);
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ error: 'Failed to fetch category data' });
+    }
+});
+
+// ã‚µãƒ¼ãƒãƒ¼ã‚’èµ·å‹•
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
