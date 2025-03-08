@@ -200,15 +200,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // APIからカテゴリ一覧を取得
             const response = await fetch('/api/categories');
+            console.log('Response status:', response.status);
             
             // レスポンスのステータスをチェック
             if (!response.ok) {
-                throw new Error(`APIエラー: ${response.status}`);
+                const errorText = await response.text();
+                console.error('API error response:', errorText);
+                throw new Error(`APIエラー: ${response.status} - ${errorText}`);
             }
             
             // JSONデータを解析
             const data = await response.json();
-            console.log('Categories received from API');
+            console.log('Categories received from API:', data.length, 'categories');
             
             // カテゴリ一覧を保存
             categories = data;
@@ -218,7 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Error fetching categories:', error);
-            showError('カテゴリ一覧の取得に失敗しました');
+            showError('カテゴリ一覧の取得に失敗しました: ' + error.message);
+            
+            // エラー時のフォールバック：カテゴリなしでデータを取得
+            console.log('カテゴリなしでデータを取得します');
+            fetchData();
         }
     }
     
@@ -227,6 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 既存のオプションをクリア（最初のオプションは残す）
         while (categorySelect.options.length > 1) {
             categorySelect.remove(1);
+        }
+        
+        // カテゴリがない場合は終了
+        if (!categories || categories.length === 0) {
+            console.log('カテゴリがありません');
+            return;
         }
         
         // カテゴリをソート（日本語名で）
