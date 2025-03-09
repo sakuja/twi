@@ -332,21 +332,18 @@ module.exports = async (req, res) => {
   }
 
   console.log('API request received');
+  console.log('Query parameters:', req.query);
   
   try {
     // 環境変数をチェック
     validateEnvironment();
     
-    // キャッシュをチェック
-    if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
-      console.log('Using cached data');
-      return res.status(200).json(cachedData);
-    }
+    // カテゴリIDを取得
+    const categoryId = req.query.category_id;
+    console.log('Category ID from query:', categoryId);
     
-    // 新しいデータを取得
-    console.log('Getting fresh data from Twitch API');
+    // 認証トークンを取得
     let token;
-    
     try {
       token = await getTwitchToken();
     } catch (error) {
@@ -354,13 +351,93 @@ module.exports = async (req, res) => {
       return res.status(error.statusCode || 500).json({ error: 'Authentication failed' });
     }
     
-    const streams = await fetchAndFormatStreams(token);
-    
-    // キャッシュを更新
-    cachedData = streams;
-    cacheTime = Date.now();
-    
-    return res.status(200).json(streams);
+    // カテゴリIDがある場合、そのカテゴリのストリームを取得
+    if (categoryId) {
+      console.log('Fetching streams for category:', categoryId);
+      
+      try {
+        // Twitch APIリクエストパラメータ
+        const params = {
+          first: 100 // 最大100件のストリームを取得
+        };
+        
+        // カテゴリIDを追加
+        params.game_id = categoryId;
+        
+        console.log('Requesting Twitch API with params:', params);
+        
+        // Twitch APIから直接データを取得
+        const data = await callTwitchAPI(
+          'https://api.twitch.tv/helix/streams',
+          params,
+          token
+        );
+        
+        if (!data || !data.data) {
+          throw new TwitchAPIError('Invalid stream data response', 500);
+        }
+        
+        const streams = data.data;
+        console.log(`Fetched ${streams.length} streams for category ${categoryId}`);
+        
+        // ユーザー情報を取得するためのユーザーIDを収集
+        const userIds = streams.map(stream => stream.user_id);
+        
+        // ユーザー情報を取得
+        const usersMap = await fetchUsers(userIds, token);
+        
+        // ストリーム情報とユーザー情報を結合して整形
+        const formattedStreams = streams.map(stream => {
+          const user = usersMap[stream.user_id] || {};
+          
+          return {
+            id: stream.id,
+            user_id: stream.user_id,
+            user_name: stream.user_name,
+            user_login: stream.user_login,
+            title: stream.title,
+            viewer_count: stream.viewer_count,
+            started_at: stream.started_at,
+            profile_image_url: user.profile_image_url || PLACEHOLDER_IMAGE_URL(stream.user_name),
+            thumbnail_url: stream.thumbnail_url
+              ? stream.thumbnail_url.replace('{width}', '40').replace('{height}', '40')
+              : PLACEHOLDER_IMAGE_URL(stream.user_name),
+            language: stream.language,
+            game_name: stream.game_name || 'その他',
+            stream_duration: calculateDuration(stream.started_at),
+            tags: stream.tags || []
+          };
+        });
+        
+        // 視聴者数でソート
+        formattedStreams.sort((a, b) => b.viewer_count - a.viewer_count);
+        
+        return res.status(200).json(formattedStreams);
+      } catch (error) {
+        console.error('Error fetching category streams:', error);
+        return res.status(error.statusCode || 500).json({ 
+          error: 'Failed to fetch category streams', 
+          message: error.message 
+        });
+      }
+    } else {
+      // カテゴリIDがない場合は通常のキャッシュチェック
+      if (cachedData && cacheTime && (Date.now() - cacheTime) < CACHE_EXPIRATION_MS) {
+        console.log('Using cached data');
+        return res.status(200).json(cachedData);
+      }
+      
+      // 新しいデータを取得
+      console.log('Getting fresh data from Twitch API');
+      
+      const streams = await fetchAndFormatStreams(token);
+      
+      // キャッシュを更新
+      cachedData = streams;
+      cacheTime = Date.now();
+      
+      return res.status(200).json(streams);
+    }
   } catch (error) {
     console.error('Error:', error.message, error.statusCode);
     
