@@ -322,8 +322,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentCategoryId) {
                 console.log('Using category filter:', currentCategoryId);
                 params.append('category_id', currentCategoryId);
-                // カテゴリフィルタリングを使用する場合は専用エンドポイントを使用
-                apiUrl = '/api/streams/category';
+                
+                // Vercel環境では、別のエンドポイントではなくクエリパラメータを使用
+                // apiUrl = '/api/streams/category'; // この行は削除しました - Vercel環境では動作しません
             } else {
                 console.log('No category filter selected');
             }
