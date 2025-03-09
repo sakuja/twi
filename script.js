@@ -239,14 +239,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 一般的な人気ゲームのIDとタイトルを手動で設定
             const popularCategories = [
-                { id: "509658", name: "雑談" },
+                
+                { id: "1286077738", name: "モンハンワイルズ" },
+                { id: "509658", name: "Just Chatting" },
              //   { id: "33214", name: "Fortnite" },
                 { id: "21779", name: "League of Legends" },
                 { id: "516575", name: "VALORANT" },
             //    { id: "27471", name: "Minecraft" },
                 { id: "32982", name: "Grand Theft Auto V" },
                 { id: "511224", name: "Apex Legends" },
-                { id: "1286077738", name: "モンハンワイルズ" },
            //     { id: "509663", name: "Special Events" },
              //   { id: "26936", name: "Music" },
             //    { id: "18122", name: "World of Warcraft" },
