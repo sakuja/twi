@@ -358,7 +358,8 @@ module.exports = async (req, res) => {
       try {
         // Twitch APIリクエストパラメータ
         const params = {
-          first: 100 // 最大100件のストリームを取得
+          first: 100, // 最大100件のストリームを取得
+          language: 'ja' // 日本語の配信のみを取得
         };
         
         // カテゴリIDを追加
