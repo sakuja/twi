@@ -314,25 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
             
             console.log('Fetching data from API...');
             
-            // APIエンドポイントとパラメータを設定
+            // Vercel環境用のAPIエンドポイント
             let apiUrl = '/api/streams';
-            const params = new URLSearchParams();
             
             // カテゴリが選択されている場合
             if (currentCategoryId) {
                 console.log('Using category filter:', currentCategoryId);
-                params.append('category_id', currentCategoryId);
-                
-                // Vercel環境では、別のエンドポイントではなくクエリパラメータを使用
-                // apiUrl = '/api/streams/category'; // この行は削除しました - Vercel環境では動作しません
+                // Vercel環境ではクエリパラメータを直接URLに追加
+                apiUrl = `/api/streams?category_id=${encodeURIComponent(currentCategoryId)}`;
+                console.log('API URL with category:', apiUrl);
             } else {
                 console.log('No category filter selected');
-            }
-            
-            // クエリパラメータを追加
-            const queryString = params.toString();
-            if (queryString) {
-                apiUrl += `?${queryString}`;
             }
             
             console.log('Requesting API URL:', apiUrl);
