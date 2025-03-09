@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //    { id: "27471", name: "Minecraft" },
                 { id: "32982", name: "Grand Theft Auto V" },
                 { id: "511224", name: "Apex Legends" },
-                { id: "334904", name: "モンハンワイルズ" },
+                { id: "1286077738", name: "モンハンワイルズ" },
            //     { id: "509663", name: "Special Events" },
              //   { id: "26936", name: "Music" },
             //    { id: "18122", name: "World of Warcraft" },
