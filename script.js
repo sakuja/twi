@@ -239,27 +239,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 一般的な人気ゲームのIDとタイトルを手動で設定
             const popularCategories = [
-                
-                { id: "1286077738", name: "モンハンワイルズ" },
                 { id: "509658", name: "Just Chatting" },
-             //   { id: "33214", name: "Fortnite" },
+                { id: "33214", name: "Fortnite" },
                 { id: "21779", name: "League of Legends" },
                 { id: "516575", name: "VALORANT" },
-            //    { id: "27471", name: "Minecraft" },
+                { id: "27471", name: "Minecraft" },
                 { id: "32982", name: "Grand Theft Auto V" },
                 { id: "511224", name: "Apex Legends" },
-           //     { id: "509663", name: "Special Events" },
-             //   { id: "26936", name: "Music" },
-            //    { id: "18122", name: "World of Warcraft" },
-           //     { id: "29595", name: "Dota 2" },
-             //   { id: "512710", name: "Call of Duty: Warzone" },
-           //     { id: "515025", name: "Overwatch 2" },
-            //    { id: "263490", name: "Rust" },
-           //     { id: "513143", name: "Teamfight Tactics" },
-            //    { id: "491487", name: "Dead by Daylight" },
-          //      { id: "511399", name: "FIFA 23" },
-           //     { id: "2748", name: "Magic: The Gathering" },
-            //    { id: "138585", name: "Hearthstone" }
+                { id: "518203", name: "Sports" },
+                { id: "509663", name: "Special Events" },
+                { id: "26936", name: "Music" },
+                { id: "18122", name: "World of Warcraft" },
+                { id: "29595", name: "Dota 2" },
+                { id: "512710", name: "Call of Duty: Warzone" },
+                { id: "515025", name: "Overwatch 2" },
+                { id: "263490", name: "Rust" },
+                { id: "513143", name: "Teamfight Tactics" },
+                { id: "491487", name: "Dead by Daylight" },
+                { id: "511399", name: "FIFA 23" },
+                { id: "2748", name: "Magic: The Gathering" },
+                { id: "138585", name: "Hearthstone" }
             ];
             
             console.log('Using pre-defined popular categories:', popularCategories.length);
@@ -292,9 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('カテゴリがありません');
             return;
         }
-        
-        // カテゴリをソート（日本語名で）
-        categories.sort((a, b) => a.name.localeCompare(b.name));
         
         // カテゴリをセレクトボックスに追加
         categories.forEach(category => {
