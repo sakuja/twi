@@ -316,13 +316,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // APIエンドポイントとパラメータを設定
             let apiUrl = '/api/streams';
-            let params = new URLSearchParams();
+            const params = new URLSearchParams();
             
             // カテゴリが選択されている場合
             if (currentCategoryId) {
                 console.log('Using category filter:', currentCategoryId);
-                apiUrl = '/api/streams/category';
                 params.append('category_id', currentCategoryId);
+                // カテゴリフィルタリングを使用する場合は専用エンドポイントを使用
+                apiUrl = '/api/streams/category';
             } else {
                 console.log('No category filter selected');
             }
@@ -335,35 +336,41 @@ document.addEventListener('DOMContentLoaded', () => {
             
             console.log('Requesting API URL:', apiUrl);
             
-            // APIからデータを取得
-            const response = await fetch(apiUrl);
-            
-            // レスポンスのステータスをチェック
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API error response:', errorText);
-                throw new Error(`APIエラー: ${response.status} - ${errorText}`);
+            try {
+                // APIからデータを取得
+                const response = await fetch(apiUrl);
+                
+                // レスポンスのステータスをチェック
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API error response:', errorText);
+                    throw new Error(`APIエラー: ${response.status} - ${errorText}`);
+                }
+                
+                // JSONデータを解析
+                const data = await response.json();
+                console.log('Data received from API:', data.length, 'streams');
+                
+                // データが空の場合
+                if (!data || data.length === 0) {
+                    showError('表示するデータがありません。別のカテゴリを選択してください。');
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    return;
+                }
+                
+                // 全てのデータを保存
+                allStreamData = data;
+                
+                // 現在のページのデータを表示
+                renderCurrentPageData();
+            } catch (error) {
+                console.error('API request failed:', error);
+                // Vercelデプロイ環境での失敗を考慮したフォールバック処理
+                showError(`データの取得に失敗しました: ${error.message}`);
             }
-            
-            // JSONデータを解析
-            const data = await response.json();
-            console.log('Data received from API:', data.length, 'streams');
-            
-            // データが空の場合
-            if (!data || data.length === 0) {
-                showError('表示するデータがありません。別のカテゴリを選択してください。');
-                if (loadingElement) loadingElement.style.display = 'none';
-                return;
-            }
-            
-            // 全てのデータを保存
-            allStreamData = data;
-            
-            // 現在のページのデータを表示
-            renderCurrentPageData();
             
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error in fetchData function:', error);
             showError(error.message);
         }
     }
