@@ -19,11 +19,12 @@ class TwitchAPIError extends Error {
 
 // 期待の新人配信者リスト
 const NEWCOMER_STREAMERS = [
-  'asdew_lol',
-  'genkunjc_',
-  'takejfps',
-  'klm5311',
-  'goroujp'
+  'hinanotachiba7',
+  'akarindao',
+  'met_komori',
+  'ramuneshiranami',
+  'kagasumire',
+  'uruhaichinose'
 ];
 
 // APIハンドラー
