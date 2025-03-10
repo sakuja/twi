@@ -14,13 +14,15 @@
 
     <main>
         <div class="container">
-            <div class="page-title">
-                <h2>期待の新人配信者ランキング</h2>
-                <p>注目の新人配信者の最新情報</p>
-            </div>
-            
             <div id="loading" class="loading">データを読み込み中...</div>
             <div id="error" class="error" style="display: none;">データの取得に失敗しました</div>
+            
+            <div class="filter-container">
+                <div class="page-title">
+                    <h2>期待の新人配信者ランキング</h2>
+                    <p>注目の新人配信者の最新情報</p>
+                </div>
+            </div>
             
             <div class="navigation-links">
                 <a href="./" class="nav-link">メインランキングに戻る</a>
@@ -30,13 +32,13 @@
                 <button id="page1" class="pagination-button active">ランキング</button>
             </div>
             
-            <table id="rankings" class="rankings-table" style="display: none;">
+            <table id="rankings" style="display: none;">
                 <thead>
                     <tr>
-                        <th class="rank-column">#</th>
-                        <th class="streamer-column">配信者</th>
-                        <th class="title-column">タイトル</th>
-                        <th class="viewers-column">視聴者数</th>
+                        <th>#</th>
+                        <th>配信者</th>
+                        <th>タイトル</th>
+                        <th>視聴者数</th>
                     </tr>
                 </thead>
                 <tbody id="rankings-body">
@@ -215,8 +217,8 @@
                     
                     // 行の内容を作成
                     row.innerHTML = `
-                        <td class="rank-column">${rank}</td>
-                        <td class="streamer-column">
+                        <td>${rank}</td>
+                        <td>
                             <div class="streamer-info">
                                 <div class="thumbnail-container">
                                     <a href="${twitchUrl}" target="_blank">
@@ -243,8 +245,8 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="title-column">${truncateTitle(stream.title)}</td>
-                        <td class="viewers-column">${stream.is_live ? formatNumber(stream.viewer_count) : '-'}</td>
+                        <td>${truncateTitle(stream.title)}</td>
+                        <td>${stream.is_live ? formatNumber(stream.viewer_count) : '-'}</td>
                     `;
                     
                     rankingsBody.appendChild(row);
