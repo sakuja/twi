@@ -633,11 +633,28 @@ td:nth-child(3) a {
 .page-title h2 {
     color: #6441a5;
     margin-bottom: 5px;
+    font-size: 1.5rem;
 }
 
 .page-title p {
     color: #666;
     font-size: 0.9em;
+}
+
+/* フィルターコンテナの調整 */
+.filter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+/* ページネーションコンテナの調整 */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
 }
 
 /* オフライン配信者のスタイル */
