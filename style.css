@@ -31,6 +31,11 @@ header h1 {
     font-size: 2.5rem;
 }
 
+header a.no-decoration {
+    text-decoration: none;
+    color: inherit;
+}
+
 #last-updated {
     font-size: 0.9rem;
     opacity: 0.8;
@@ -45,6 +50,7 @@ header h1 {
 
 .error {
     color: #e53935;
+    display: none;
 }
 
 /* ページネーション */
@@ -79,14 +85,13 @@ header h1 {
 }
 
 /* テーブルスタイル */
-table {
+#rankings {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
     background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    table-layout: fixed;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: none;
 }
 
 thead {
@@ -601,6 +606,24 @@ td:nth-child(3) a {
         max-width: 100px;
         text-align: right;
     }
+}
+
+/* ナビゲーションコンテナ */
+.navigation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.navigation-container .navigation-links {
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.navigation-container .pagination-container {
+    margin: 0;
 }
 
 /* ナビゲーションリンク */
