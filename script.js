@@ -2,6 +2,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded');
     
+    // URLからカテゴリIDを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryIdFromUrl = urlParams.get('category_id');
+    
+    if (categoryIdFromUrl) {
+        console.log('カテゴリIDがURLから検出されました:', categoryIdFromUrl);
+        currentCategoryId = categoryIdFromUrl;
+    }
+    
     // 配信時間の色を決定する関数
     function getDurationColor(durationText) {
         // 配信時間からデータを抽出する
@@ -297,6 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const option = document.createElement('option');
             option.value = category.id;
             option.textContent = category.name;
+            // URLから取得したカテゴリIDと一致する場合、選択状態にする
+            if (category.id === currentCategoryId) {
+                option.selected = true;
+            }
             categorySelect.appendChild(option);
         });
     }
@@ -365,31 +378,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // フィルター変更時のイベントハンドラを設定
-    function setupFilterHandlers() {
-        // カテゴリ選択変更時
-        categorySelect.addEventListener('change', () => {
-            currentCategoryId = categorySelect.value;
-            currentPage = 1; // ページを1に戻す
-            updatePageButtons();
-            fetchData(); // データを再取得
-        });
-    }
-    
     // 初期化処理
     function init() {
-        // ページネーションをセットアップ
+        console.log('Initializing application...');
+        
+        // カテゴリ選択のイベントリスナーを設定
+        categorySelect.addEventListener('change', (event) => {
+            const selectedCategoryId = event.target.value;
+            console.log('カテゴリが選択されました:', selectedCategoryId);
+            
+            // 別ページに遷移
+            if (selectedCategoryId) {
+                window.location.href = `?category_id=${selectedCategoryId}`;
+            } else {
+                // カテゴリが選択されていない場合はトップページに戻る
+                window.location.href = './';
+            }
+        });
+        
+        // ページネーションの設定
         setupPagination();
         
-        // フィルターハンドラをセットアップ
-        setupFilterHandlers();
-        
         // カテゴリ一覧を取得
-        fetchCategories();
-        
-        // 初回データ取得
-        fetchData();
-        
+        fetchCategories()
+            .then(() => {
+                // カテゴリ一覧の取得後にデータを取得
+                fetchData();
+            })
+            .catch(error => {
+                console.error('初期化中にエラーが発生しました:', error);
+                showError(error.message);
+            });
+            
         // 60秒ごとにデータを更新
         setInterval(fetchData, 60000);
     }
