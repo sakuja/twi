@@ -2,7 +2,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded');
     
-    // URLからカテゴリIDを取得
+    // 要素の参照を取得
+    const loadingElement = document.getElementById('loading');
+    const errorElement = document.getElementById('error');
+    const rankingsTable = document.getElementById('rankings');
+    const rankingsBody = document.getElementById('rankings-body');
+    const updateTimeElement = document.getElementById('update-time');
+    const page1Button = document.getElementById('page1');
+    const page2Button = document.getElementById('page2');
+    const categorySelect = document.getElementById('category-select');
+    
+    // 現在のページ状態を保持
+    let currentPage = 1; // デフォルトは1ページ目
+    let allStreamData = []; // 全てのストリームデータを保持
+    let currentCategoryId = ''; // 現在選択されているカテゴリID
+    let categories = []; // カテゴリ一覧を保持
+    
+    // URLからカテゴリIDを取得（変数初期化後に実行）
     const urlParams = new URLSearchParams(window.location.search);
     const categoryIdFromUrl = urlParams.get('category_id');
     
@@ -47,22 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return '#F44336'; // 8時間以上: 赤色
         }
     }
-    
-    // 要素の参照を取得
-    const loadingElement = document.getElementById('loading');
-    const errorElement = document.getElementById('error');
-    const rankingsTable = document.getElementById('rankings');
-    const rankingsBody = document.getElementById('rankings-body');
-    const updateTimeElement = document.getElementById('update-time');
-    const page1Button = document.getElementById('page1');
-    const page2Button = document.getElementById('page2');
-    const categorySelect = document.getElementById('category-select');
-    
-    // 現在のページ状態を保持
-    let currentPage = 1; // デフォルトは1ページ目
-    let allStreamData = []; // 全てのストリームデータを保持
-    let currentCategoryId = ''; // 現在選択されているカテゴリID
-    let categories = []; // カテゴリ一覧を保持
     
     // 数値をフォーマットする関数
     function formatNumber(num) {
@@ -248,22 +248,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 一般的な人気ゲームのIDとタイトルを手動で設定
             const popularCategories = [
-                { id: "509658", name: "Just Chatting" },
+                { id: "509658", name: "雑談" },
                 { id: "33214", name: "Fortnite" },
                 { id: "21779", name: "League of Legends" },
                 { id: "516575", name: "VALORANT" },
                 { id: "27471", name: "Minecraft" },
                 { id: "32982", name: "Grand Theft Auto V" },
                 { id: "511224", name: "Apex Legends" },
-                { id: "518203", name: "Sports" },
+                { id: "334904", name: "モンハンワイルズ" },
                 { id: "509663", name: "Special Events" },
                 { id: "26936", name: "Music" },
                 { id: "18122", name: "World of Warcraft" },
-                { id: "29595", name: "Dota 2" },
+               { id: "29595", name: "Dota 2" },
                 { id: "512710", name: "Call of Duty: Warzone" },
-                { id: "515025", name: "Overwatch 2" },
+               { id: "515025", name: "Overwatch 2" },
                 { id: "263490", name: "Rust" },
-                { id: "513143", name: "Teamfight Tactics" },
+               { id: "513143", name: "Teamfight Tactics" },
                 { id: "491487", name: "Dead by Daylight" },
                 { id: "511399", name: "FIFA 23" },
                 { id: "2748", name: "Magic: The Gathering" },
@@ -277,6 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // カテゴリ選択肢を更新
             updateCategoryOptions();
+            
+            // URLからのカテゴリIDが設定されている場合、選択状態を更新
+            if (currentCategoryId) {
+                console.log('URLから取得したカテゴリIDを選択状態に設定:', currentCategoryId);
+                categorySelect.value = currentCategoryId;
+            }
             
         } catch (error) {
             console.error('Error fetching categories directly:', error);
