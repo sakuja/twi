@@ -617,11 +617,11 @@ td:nth-child(3) a {
     align-items: center;
     margin: 15px 0;
     flex-wrap: wrap;
+    gap: 10px;
 }
 
 .navigation-container .navigation-links {
-    margin-right: 20px;
-    margin-bottom: 10px;
+    margin-left: 0;
 }
 
 .navigation-container .pagination-container {
