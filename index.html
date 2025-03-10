@@ -8,14 +8,14 @@
 </head>
 <body>
     <header>
-        <h1><a href="./" style="text-decoration: none; color: inherit;">Twitchの配信者ランキング</a></h1>
+        <h1><a href="./" class="no-decoration">Twitchの配信者ランキング</a></h1>
         <p id="last-updated">最終更新: <span id="update-time">--</span></p>
     </header>
 
     <main>
         <div class="container">
             <div id="loading" class="loading">データを読み込み中...</div>
-            <div id="error" class="error" style="display: none;">データの取得に失敗しました</div>
+            <div id="error" class="error">データの取得に失敗しました</div>
             
             <div class="filter-container">
                 <div class="category-filter">
@@ -27,17 +27,18 @@
                 </div>
             </div>
             
-            <div class="navigation-links">
-                <a href="newcomers.html" class="nav-link">期待の新人配信者ランキング</a>
+            <div class="navigation-container center">
+                <div class="navigation-links">
+                    <a href="newcomers.html" class="nav-link">期待の新人配信者ランキング</a>
+                </div>
+                
+                <div class="pagination-container">
+                    <button id="page1" class="pagination-button active">1-50位</button>
+                    <button id="page2" class="pagination-button">51-100位</button>
+                </div>
             </div>
             
-            <div class="pagination-container">
-                <button id="page1" class="pagination-button active">1-50位</button>
-                <button id="page2" class="pagination-button">51-100位</button>
-         
-            </div>
-            
-            <table id="rankings" style="display: none;">
+            <table id="rankings">
                 <thead>
                     <tr>
                         <th>#</th>
