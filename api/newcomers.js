@@ -25,6 +25,10 @@ const NEWCOMER_STREAMERS = [
   'ramuneshiranami',
   'kagasumire',
   'uruhaichinose'
+  'ren_kisaragi__'
+  '963noah'
+  'shinomiya_runa'
+  'lisahanabusa'
 ];
 
 // APIハンドラー
