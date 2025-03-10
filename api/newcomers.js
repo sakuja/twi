@@ -24,11 +24,11 @@ const NEWCOMER_STREAMERS = [
   'met_komori',
   'ramuneshiranami',
   'kagasumire',
-  'uruhaichinose'
-  'ren_kisaragi__'
-  '963noah'
-  'shinomiya_runa'
-  'lisahanabusa'
+  'uruhaichinose',
+  'ren_kisaragi__',
+  '963noah',
+  'shinomiya_runa',
+  'lisahanabusa',
 ];
 
 // APIハンドラー
