@@ -631,7 +631,7 @@ td:nth-child(3) a {
 .nav-link {
     display: inline-block;
     padding: 8px 16px;
-    background-color: #6441a5;
+    background-color: #eee;
     color: white;
     text-decoration: none;
     border-radius: 4px;
