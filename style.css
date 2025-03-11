@@ -239,12 +239,15 @@ footer {
     display: flex;
     align-items: center;
     gap: 20px;
+    padding: 0 10px;
 }
 
 .category-filter {
     display: flex;
     align-items: center;
     gap: 10px;
+    width: calc(100% - 20px);
+    max-width: 400px;
 }
 
 .category-filter label {
@@ -292,13 +295,15 @@ footer {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+        padding: 0 10px;
     }
     
     .category-filter {
         display: flex;
         flex-direction: row;
         align-items: center;
-        width: 100%;
+        width: calc(100% - 20px);
+        max-width: 400px;
     }
     
     .category-filter label {
@@ -329,7 +334,12 @@ footer {
 @media (max-width: 480px) {
     .category-filter {
         flex-wrap: nowrap;
-        width: 100%;
+        width: calc(100% - 20px);
+        max-width: 350px;
+    }
+    
+    .container {
+        padding: 10px;
     }
 }
 
@@ -706,6 +716,7 @@ td:nth-child(3) a {
     align-items: center;
     flex-wrap: wrap;
     margin-bottom: 15px;
+    padding: 0 10px;
 }
 
 /* ページネーションコンテナの調整 */
