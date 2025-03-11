@@ -31,6 +31,11 @@ header h1 {
     font-size: 2.5rem;
 }
 
+header a.no-decoration {
+    text-decoration: none;
+    color: inherit;
+}
+
 #last-updated {
     font-size: 0.9rem;
     opacity: 0.8;
@@ -45,27 +50,24 @@ header h1 {
 
 .error {
     color: #e53935;
+    display: none;
 }
 
 /* ページネーション */
 .pagination-container {
-    max-width: 900px;
-    margin: 0 auto 20px;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+    text-align: center;
+    margin: 15px 0;
 }
 
 .pagination-button {
-    background-color: #f2f2f2;
-    border: 1px solid #ddd;
-    color: #333;
+    background-color: #f0f0f0;
+    border: none;
     padding: 8px 16px;
-    margin: 0 5px;
+    margin: 0;
     cursor: pointer;
     border-radius: 4px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    font-weight: bold;
+    transition: background-color 0.3s;
 }
 
 .pagination-button:hover {
@@ -79,7 +81,7 @@ header h1 {
 }
 
 /* テーブルスタイル */
-table {
+#rankings {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
@@ -87,6 +89,7 @@ table {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     table-layout: fixed;
+    display: none;
 }
 
 thead {
@@ -232,29 +235,46 @@ footer {
 
 /* フィルターコンテナ */
 .filter-container {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
     margin-bottom: 20px;
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 10px;
 }
 
-.category-filter, .language-filter {
+.category-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: calc(100% - 20px);
+    max-width: 400px;
+}
+
+.category-filter label {
+    white-space: nowrap;
+    margin-right: 5px;
+}
+
+.category-filter select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: white;
+    min-width: 200px;
+}
+
+.language-filter {
     display: flex;
     align-items: center;
 }
 
-.category-filter label, .language-filter label {
+.language-filter label {
     margin-right: 10px;
     font-weight: bold;
     color: #6441a5;
 }
 
-.category-filter select, .language-filter select {
+.language-filter select {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -263,31 +283,63 @@ footer {
     min-width: 200px;
 }
 
-.category-filter select:focus, .language-filter select:focus {
+.language-filter select:focus {
     outline: none;
     border-color: #6441a5;
     box-shadow: 0 0 0 2px rgba(100, 65, 165, 0.2);
 }
 
-/* レスポンシブ対応 */
+/* レスポンシブデザインの調整 */
 @media (max-width: 768px) {
     .filter-container {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
         gap: 10px;
+        padding: 0 10px;
     }
     
-    .category-filter, .language-filter {
+    .category-filter {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: calc(100% - 20px);
+        max-width: 400px;
+    }
+    
+    .category-filter label {
+        margin-bottom: 0;
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+    
+    .category-filter select {
+        flex: 1;
+        width: auto;
+    }
+    
+    .language-filter {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    .category-filter label, .language-filter label {
+    .language-filter label {
         margin-bottom: 5px;
     }
     
-    .category-filter select, .language-filter select {
+    .language-filter select {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-filter {
+        flex-wrap: nowrap;
+        width: calc(100% - 20px);
+        max-width: 350px;
+    }
+    
+    .container {
+        padding: 10px;
     }
 }
 
@@ -603,6 +655,22 @@ td:nth-child(3) a {
     }
 }
 
+/* ナビゲーションコンテナ */
+.navigation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.navigation-container .pagination-container {
+    display: flex;
+    gap: 20px;
+    margin: 0;
+}
+
 /* ナビゲーションリンク */
 .navigation-links {
     margin: 15px 0;
@@ -612,8 +680,8 @@ td:nth-child(3) a {
 .nav-link {
     display: inline-block;
     padding: 8px 16px;
-    background-color: #6441a5;
-    color: white;
+    background-color: #eee;
+    color: #000;
     text-decoration: none;
     border-radius: 4px;
     font-weight: bold;
@@ -633,11 +701,29 @@ td:nth-child(3) a {
 .page-title h2 {
     color: #6441a5;
     margin-bottom: 5px;
+    font-size: 1.5rem;
 }
 
 .page-title p {
     color: #666;
     font-size: 0.9em;
+}
+
+/* フィルターコンテナの調整 */
+.filter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+/* ページネーションコンテナの調整 */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
 }
 
 /* オフライン配信者のスタイル */
