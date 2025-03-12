@@ -25,7 +25,6 @@ header {
     text-align: center;
     padding: 2rem 0;
 }
-
 header h1 {
     margin-bottom: 10px;
     font-size: 2.5rem;
@@ -40,6 +39,129 @@ header a.no-decoration {
     font-size: 0.9rem;
     opacity: 0.8;
 }
+
+
+
+
+
+
+
+
+/* ヘッダー */
+.site-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+}
+
+.logo-area {
+    flex: 0 0 auto;
+}
+
+.logo {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.search-area {
+    flex: 1 1 auto;
+    max-width: 400px;
+    margin: 0 20px;
+}
+
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e6e6e6;
+    border-radius: 99px;
+    padding: 4px 15px;
+    background-color: #f8f8f8;
+}
+
+.search-wrapper:focus-within {
+    border-color: #6441a5;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(100, 65, 165, 0.1);
+}
+
+.search-icon {
+    color: #888;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+#search-input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    padding: 6px 0;
+    outline: none;
+    font-size: 0.9rem;
+    width: 100%;
+    color: #333;
+}
+
+.header-info {
+    flex: 0 0 auto;
+}
+
+#last-updated {
+    font-size: 0.75rem;
+    color: #888;
+    margin: 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .header-container {
+        flex-wrap: wrap;
+    }
+    
+    .logo-area {
+        flex: 1 0 auto;
+    }
+    
+    .search-area {
+        order: 3;
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin: 10px 0 0 0;
+    }
+    
+    .header-info {
+        font-size: 0.7rem;
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 /* ローディングとエラー表示 */
 .loading, .error {
