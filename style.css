@@ -890,14 +890,16 @@ td:nth-child(3) a {
     border-radius: 4px;
     cursor: pointer;
     user-select: none;
+    justify-content: space-between; /* 内容を両端に寄せる */
 }
 
 .custom-select:hover {
     border-color: #6441a5;
 }
 
+/* アイコンを左に配置 */
 .custom-select-icon {
-    margin-right: 10px;
+    margin-right: auto; /* 右側の余白を自動で最大化 */
     color: #6441a5;
     width: 16px;
     height: 16px;
@@ -906,17 +908,18 @@ td:nth-child(3) a {
     justify-content: center;
 }
 
-/* ドロップダウンテキストの色修正 */
+/* テキストを右に寄せて灰色に */
 .custom-select-value {
-    flex-grow: 1;
-    color: #333; /* 文字色を濃いグレーに設定 */
+    color: #888; /* 灰色の文字色 */
+    margin-right: 8px; /* 矢印との間隔 */
+    text-align: right; /* テキストを右寄せ */
 }
 
+/* 矢印の位置調整 */
 .custom-select-arrow {
     border-style: solid;
     border-width: 5px 5px 0 5px;
     border-color: #6441a5 transparent transparent transparent;
-    margin-left: 10px;
 }
 
 .custom-select-dropdown {
@@ -977,4 +980,13 @@ td:nth-child(3) a {
 
 .custom-select.open + .custom-select-dropdown {
     display: block;
+}
+
+/* ドロップダウン内の項目のスタイルは変更しない */
+.custom-select-option .custom-select-option-icon {
+    margin-right: 10px; /* 既存の値を維持 */
+}
+
+.custom-select-dropdown .custom-select-option div:last-child {
+    color: #333; /* ドロップダウン内の選択肢は通常の色を維持 */
 }
