@@ -906,8 +906,10 @@ td:nth-child(3) a {
     justify-content: center;
 }
 
+/* ドロップダウンテキストの色修正 */
 .custom-select-value {
     flex-grow: 1;
+    color: #333; /* 文字色を濃いグレーに設定 */
 }
 
 .custom-select-arrow {
@@ -938,10 +940,15 @@ td:nth-child(3) a {
     align-items: center;
     padding: 8px 12px;
     cursor: pointer;
+    color: #333; /* 文字色を濃いグレーに設定 */
 }
 
 .custom-select-option:hover {
     background-color: #f5f0ff;
+}
+
+.custom-select-option > div {
+    color: #333; /* オプション内の div 要素のテキスト色も設定 */
 }
 
 .custom-select-option.selected {
