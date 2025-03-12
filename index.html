@@ -12,16 +12,37 @@
         <div class="logo-area">
             <h1><a href="./" class="logo">twitch rank</a></h1>
         </div>
-        <div class="search-area">
-            <div class="search-wrapper">
-                <span class="search-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </span>
-                <input type="text" id="search-input" placeholder="配信者を検索">
+        <div class="category-area">
+            <div class="header-category-filter">
+                <div class="custom-select-container">
+                    <div id="custom-category-select" class="custom-select">
+                        <div class="custom-select-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18M3 12h18M3 18h18"></path>
+                            </svg>
+                        </div>
+                        <div class="custom-select-value">全てのカテゴリ</div>
+                        <div class="custom-select-arrow"></div>
+                    </div>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-option selected" data-value="">
+                            <div class="custom-select-option-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 8v8M8 12h8"></path>
+                                </svg>
+                            </div>
+                            <div>全てのカテゴリ</div>
+                        </div>
+                        <!-- JavaScriptでカテゴリオプションが挿入されます -->
+                    </div>
+                </div>
             </div>
+            <!-- 元のセレクトボックスは非表示にして値の同期に使用 -->
+            <select id="category-select" style="display: none;">
+                <option value="">全てのカテゴリ</option>
+                <!-- JavaScriptでカテゴリが挿入されます -->
+            </select>
         </div>
         <div class="header-info">
             <p id="last-updated">最終更新: <span id="update-time">--</span></p>
