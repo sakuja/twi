@@ -387,6 +387,132 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初期化処理
     function init() {
         console.log('Initializing application...');
+
+
+
+
+
+
+// カスタムセレクトボックスの設定
+const customSelect = document.getElementById('custom-category-select');
+const customSelectValue = customSelect.querySelector('.custom-select-value');
+const customSelectDropdown = document.querySelector('.custom-select-dropdown');
+
+// カスタムセレクトボックスのクリックイベント
+if (customSelect) {
+    customSelect.addEventListener('click', function() {
+        this.classList.toggle('open');
+    });
+
+    // ドキュメント全体のクリックイベントで外側をクリックしたらドロップダウンを閉じる
+    document.addEventListener('click', function(event) {
+        if (!customSelect.contains(event.target)) {
+            customSelect.classList.remove('open');
+        }
+    });
+}
+
+// カテゴリオプションの更新関数をオーバーライド
+window.updateCategoryOptions = function() {
+    // 既存のオプションをクリア（最初のオプションは残す）
+    while (categorySelect.options.length > 1) {
+        categorySelect.remove(1);
+    }
+    
+    // カスタムドロップダウンのオプションをクリア（最初のオプションは残す）
+    const customDropdown = document.querySelector('.custom-select-dropdown');
+    if (customDropdown) {
+        // 最初のオプション以外を削除
+        while (customDropdown.children.length > 1) {
+            customDropdown.removeChild(customDropdown.lastChild);
+        }
+    }
+    
+    // カテゴリがない場合は終了
+    if (!categories || categories.length === 0) {
+        console.log('カテゴリがありません');
+        return;
+    }
+    
+    // カテゴリごとにアイコンを決定する関数
+    function getCategoryIcon(categoryName) {
+        // カテゴリ名によって異なるアイコンを返す
+        if (categoryName.includes('雑談')) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+        } else if (categoryName.includes('Minecraft')) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>';
+        } else if (categoryName.includes('Fortnite') || categoryName.includes('VALORANT') || categoryName.includes('Apex')) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 9-7-7-7 7"></path><path d="M19 15v4h-4"></path><path d="M5 15v4h4"></path><path d="m5 15 14-7"></path></svg>';
+        } else {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M20 4v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4"></path><path d="M6 8h.01"></path><path d="M10 8h.01"></path><path d="M14 8h.01"></path><path d="M18 8h.01"></path></svg>';
+        }
+    }
+    
+    // カテゴリをセレクトボックスとカスタムドロップダウンに追加
+    categories.forEach(category => {
+        // 標準のセレクトボックス用オプション
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        // URLから取得したカテゴリIDと一致する場合、選択状態にする
+        if (category.id === currentCategoryId) {
+            option.selected = true;
+            if (customSelectValue) {
+                customSelectValue.textContent = category.name;
+            }
+        }
+        categorySelect.appendChild(option);
+        
+        // カスタムドロップダウン用オプション
+        if (customDropdown) {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-select-option';
+            customOption.dataset.value = category.id;
+            if (category.id === currentCategoryId) {
+                customOption.classList.add('selected');
+            }
+            
+            // アイコンと名前を設定
+            customOption.innerHTML = `
+                <div class="custom-select-option-icon">
+                    ${getCategoryIcon(category.name)}
+                </div>
+                <div>${category.name}</div>
+            `;
+            
+            // クリックイベント
+            customOption.addEventListener('click', function() {
+                // 値を標準のセレクトに設定して変更イベントを発火
+                categorySelect.value = this.dataset.value;
+                categorySelect.dispatchEvent(new Event('change'));
+                
+                // 表示テキストを更新
+                if (customSelectValue) {
+                    customSelectValue.textContent = this.querySelector('div:last-child').textContent;
+                }
+                
+                // 選択状態のクラスを更新
+                document.querySelectorAll('.custom-select-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                
+                // ドロップダウンを閉じる
+                if (customSelect) {
+                    customSelect.classList.remove('open');
+                }
+            });
+            
+            customDropdown.appendChild(customOption);
+        }
+    });
+};
+
+
+
+
+
+        
         
         // カテゴリ選択のイベントリスナーを設定
         categorySelect.addEventListener('change', (event) => {
