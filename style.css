@@ -142,6 +142,37 @@ main .filter-container {
     flex: 0 0 auto;
 }
 
+
+
+ /* カスタムセレクトの調整 */
+    .header-category-filter .custom-select {
+        padding: 4px 8px; /* さらにパディングを小さく */
+        height: 36px;
+    }
+    
+    /* テキストサイズ調整 */
+    .logo {
+        font-size: 1.1rem; /* さらに小さく */
+        white-space: nowrap;
+    }
+    
+    .custom-select-value {
+        font-size: 0.85rem; /* フォントサイズを小さく */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .custom-select-icon {
+        margin-right: 6px;
+        min-width: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+
+
+
 /* 最終更新情報の色を明るく */
 #last-updated {
     font-size: 0.7rem;
