@@ -73,6 +73,9 @@ main .filter-container {
     top: 0;
     z-index: 1000;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 56px; /* 固定高さを設定 */
+    display: flex;
+    align-items: center;
 }
 
 .header-container {
@@ -81,7 +84,9 @@ main .filter-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 0 20px; /* 上下のパディングを削除 */
+    height: 100%; /* 親要素の高さいっぱいに */
+    width: 100%;
 }
 
 .logo-area {
@@ -91,7 +96,7 @@ main .filter-container {
 .logo {
     text-decoration: none;
     color: #333;
-    font-size: 1.5rem;
+    font-size: 1.25rem; /* フォントサイズを少し小さく */
     font-weight: 700;
     letter-spacing: -0.5px;
 }
@@ -114,11 +119,13 @@ main .filter-container {
     width: 100%;
 }
 
+/* カスタムセレクトの高さ調整 */
 .header-category-filter .custom-select {
     background-color: #f8f8f8;
     border-radius: 99px;
+    padding: 6px 12px; /* パディングを小さく */
+    height: 36px; /* 高さを固定 */
 }
-
 .header-category-filter .custom-select:hover {
     border-color: #6441a5;
 }
@@ -135,12 +142,35 @@ main .filter-container {
 }
 
 #last-updated {
-    font-size: 0.75rem;
+    font-size: 0.7rem; /* さらに小さく */
     color: #888;
     margin: 0;
 }
-
 /* レスポンシブ対応 */
+
+@media (max-width: 768px) {
+    .site-header {
+        height: auto; /* モバイルでは自動高さ */
+    }
+    
+    .header-container {
+        flex-wrap: wrap;
+        padding: 8px 16px; /* モバイルでのパディング */
+    }
+    
+    .category-area {
+        order: 3;
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin: 8px 0 8px 0; /* 上下の余白を小さく */
+    }
+}
+
+
+
+
+
+/* 
 @media (max-width: 768px) {
     .header-container {
         flex-wrap: wrap;
@@ -162,7 +192,7 @@ main .filter-container {
     }
 }
 
-
+*/
 
 
 
