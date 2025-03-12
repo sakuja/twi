@@ -880,6 +880,7 @@ td:nth-child(3) a {
     width: 100%;
 }
 
+/* プルダウンメニューのレイアウト調整 */
 .custom-select {
     display: flex;
     align-items: center;
@@ -890,7 +891,6 @@ td:nth-child(3) a {
     border-radius: 4px;
     cursor: pointer;
     user-select: none;
-    justify-content: space-between; /* 内容を両端に寄せる */
 }
 
 .custom-select:hover {
@@ -899,7 +899,7 @@ td:nth-child(3) a {
 
 /* アイコンを左に配置 */
 .custom-select-icon {
-    margin-right: auto; /* 右側の余白を自動で最大化 */
+    margin-right: 10px; /* テキストとの間隔 */
     color: #6441a5;
     width: 16px;
     height: 16px;
@@ -907,19 +907,19 @@ td:nth-child(3) a {
     align-items: center;
     justify-content: center;
 }
-
-/* テキストを右に寄せて灰色に */
+/* テキストを左寄せして灰色に */
 .custom-select-value {
+    flex-grow: 1; /* 余白を埋める */
     color: #888; /* 灰色の文字色 */
-    margin-right: 8px; /* 矢印との間隔 */
-    text-align: right; /* テキストを右寄せ */
+    text-align: left; /* テキストを左寄せ */
 }
 
-/* 矢印の位置調整 */
+/* 矢印を右端に */
 .custom-select-arrow {
     border-style: solid;
     border-width: 5px 5px 0 5px;
     border-color: #6441a5 transparent transparent transparent;
+    margin-left: auto; /* 右端に配置 */
 }
 
 .custom-select-dropdown {
