@@ -67,16 +67,17 @@ main .filter-container {
 
 /* ヘッダー */
 .site-header {
-    background-color: #6441a5;
-    border-bottom: 1px solid #f2f2f2;
+    background-color: #6441a5; /* Twitchのブランドカラー */
+    border-bottom: 1px solid #5a3a95; /* ボーダーも少し暗めの紫に */
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    height: 56px; /* 固定高さを設定 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 56px;
     display: flex;
     align-items: center;
 }
+
 
 .header-container {
     max-width: 1100px;
@@ -95,16 +96,16 @@ main .filter-container {
 
 .logo {
     text-decoration: none;
-    color: #333;
-    font-size: 1.25rem; /* フォントサイズを少し小さく */
+    color: #ffffff; /* 白色に変更 */
+    font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.5px;
 }
 
 .logo:hover {
-    opacity: 0.8;
+    opacity: 0.9;
+    color: #ffffff;
 }
-
 .category-area {
     flex: 1 1 auto;
     max-width: 400px;
@@ -141,9 +142,10 @@ main .filter-container {
     flex: 0 0 auto;
 }
 
+/* 最終更新情報の色を明るく */
 #last-updated {
-    font-size: 0.7rem; /* さらに小さく */
-    color: #888;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8); /* 半透明の白 */
     margin: 0;
 }
 /* レスポンシブ対応 */
