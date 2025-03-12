@@ -67,13 +67,13 @@ main .filter-container {
 
 /* ヘッダー */
 .site-header {
-    background-color: #6441a5;
-    border-bottom: 1px solid #f2f2f2;
+    background-color: #6441a5; /* Twitchのブランドカラー */
+    border-bottom: 1px solid #5a3a95; /* ボーダーも少し暗めの紫に */
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    height: 56px; /* 固定高さを設定 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 56px;
     display: flex;
     align-items: center;
 }
@@ -95,14 +95,15 @@ main .filter-container {
 
 .logo {
     text-decoration: none;
-    color: #333;
-    font-size: 1.25rem; /* フォントサイズを少し小さく */
+    color: #ffffff; /* 白色に変更 */
+    font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.5px;
 }
 
 .logo:hover {
-    opacity: 0.8;
+    opacity: 0.9;
+    color: #ffffff;
 }
 
 .category-area {
@@ -120,14 +121,19 @@ main .filter-container {
 }
 
 /* カスタムセレクトの高さ調整 */
+/* カスタムセレクトの背景色とボーダーを調整 */
 .header-category-filter .custom-select {
-    background-color: #f8f8f8;
+    background-color: rgba(255, 255, 255, 0.15); /* 半透明の白 */
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 99px;
-    padding: 6px 12px; /* パディングを小さく */
-    height: 36px; /* 高さを固定 */
+    padding: 6px 12px;
+    height: 36px;
 }
+
+
 .header-category-filter .custom-select:hover {
-    border-color: #6441a5;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .header-category-filter .custom-select:focus-within,
@@ -141,11 +147,13 @@ main .filter-container {
     flex: 0 0 auto;
 }
 
+/* 最終更新情報の色を明るく */
 #last-updated {
-    font-size: 0.7rem; /* さらに小さく */
-    color: #888;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8); /* 半透明の白 */
     margin: 0;
 }
+
 /* レスポンシブ対応 */
 
 @media (max-width: 768px) {
@@ -929,8 +937,8 @@ td:nth-child(3) a {
 
 /* アイコンを左に配置 */
 .custom-select-icon {
-    margin-right: 10px; /* テキストとの間隔 */
-    color: #6441a5;
+    margin-right: 10px;
+    color: #ffffff; /* 白色に変更 */
     width: 16px;
     height: 16px;
     display: flex;
@@ -939,17 +947,18 @@ td:nth-child(3) a {
 }
 /* テキストを左寄せして灰色に */
 .custom-select-value {
-    flex-grow: 1; /* 余白を埋める */
-    color: #888; /* 灰色の文字色 */
-    text-align: left; /* テキストを左寄せ */
+    flex-grow: 1;
+    color: #ffffff; /* 白色に変更 */
+    text-align: left;
 }
+
 
 /* 矢印を右端に */
 .custom-select-arrow {
     border-style: solid;
     border-width: 5px 5px 0 5px;
-    border-color: #6441a5 transparent transparent transparent;
-    margin-left: auto; /* 右端に配置 */
+    border-color: #ffffff transparent transparent transparent; /* 矢印を白に */
+    margin-left: auto;
 }
 
 .custom-select-dropdown {
