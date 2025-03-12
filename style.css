@@ -151,22 +151,79 @@ main .filter-container {
 /* レスポンシブ対応 */
 
 @media (max-width: 768px) {
-    .site-header {
+   /* .site-header {
         height: auto; /* モバイルでは自動高さ */
+    }*/
+
+        .site-header {
+        height: 56px; /* 固定高さを維持 */
     }
-    
-    .header-container {
+       .header-container {
+        flex-wrap: nowrap; /* 要素を折り返さない */
+        padding: 0 12px; /* パディングを小さく */
+    }
+
+    /*.header-container {
         flex-wrap: wrap;
         padding: 8px 16px; /* モバイルでのパディング */
-    }
+    }*/
     
-    .category-area {
+    /*.category-area {
         order: 3;
         flex: 0 0 100%;
         max-width: 100%;
         margin: 8px 0 8px 0; /* 上下の余白を小さく */
+*/
+
+   .category-area {
+        flex: 1 1 auto;
+        order: 0; /* 元の順序を維持 */
+        max-width: calc(100% - 120px); /* ロゴ分のスペースを確保 */
+        margin: 0; /* マージンをリセット */
+    }
+            .header-info {
+        display: none; /* 最終更新時間を非表示 */
+    }
+
+
+ /* テキストサイズ調整 */
+    .logo {
+        font-size: 1.1rem; /* さらに小さく */
+        white-space: nowrap;
+    }
+    
+    .custom-select-value {
+        font-size: 0.85rem; /* フォントサイズを小さく */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .custom-select-icon {
+        margin-right: 6px;
+        min-width: 14px;
+        width: 14px;
+        height: 14px;
     }
 }
+
+/* さらに小さい画面用 */
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 8px;
+    }
+    
+    .logo {
+        font-size: 1rem;
+    }
+    
+    .custom-select-value {
+        max-width: 150px; /* テキストの最大幅を制限 */
+    }
+}
+
+    }
+
 
 
 
@@ -181,7 +238,8 @@ main .filter-container {
     .logo-area {
         flex: 1 0 auto;
     }
-    
+
+
     .category-area {
         order: 3;
         flex: 0 0 100%;
