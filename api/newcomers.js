@@ -3,10 +3,13 @@ const axios = require('axios');
 // 定数
 const TOKEN_EXPIRY_MARGIN_MS = 60 * 1000; // 1分のマージン
 const PLACEHOLDER_IMAGE_URL = (name) => `https://placehold.co/40x40/6441a5/FFFFFF/webp?text=${name.charAt(0).toUpperCase()}`;
+const CACHE_DURATION_MS = 60 * 1000; // 1分間のキャッシュ
 
 // キャッシュ変数
 let twitchToken = null;
 let tokenExpiry = null;
+let cachedStreamersData = null;
+let cacheTime = null;
 
 // エラーハンドリング用のカスタムエラークラス
 class TwitchAPIError extends Error {
@@ -45,6 +48,12 @@ module.exports = async (req, res) => {
   console.log('Newcomers API request received');
   
   try {
+    // キャッシュが有効な場合はキャッシュからデータを返す
+    if (cachedStreamersData && cacheTime && (Date.now() - cacheTime < CACHE_DURATION_MS)) {
+      console.log('Returning cached newcomer streamers data');
+      return res.status(200).json(cachedStreamersData);
+    }
+
     // 環境変数をチェック
     validateEnvironment();
     
@@ -60,8 +69,12 @@ module.exports = async (req, res) => {
     try {
       console.log('Fetching newcomer streamers data...');
       
-      // 新人配信者の情報を取得
-      const streamersData = await fetchNewcomerStreamers(token);
+      // 新人配信者の情報を取得（バッチ処理による最適化）
+      const streamersData = await fetchNewcomerStreamersOptimized(token);
+      
+      // 結果をキャッシュに保存
+      cachedStreamersData = streamersData;
+      cacheTime = Date.now();
       
       return res.status(200).json(streamersData);
     } catch (error) {
@@ -122,8 +135,10 @@ async function getTwitchToken() {
   }
 }
 
-// Twitch APIを呼び出す関数
-async function callTwitchAPI(url, params, token) {
+// Twitch APIを呼び出す関数（リトライロジック付き）
+async function callTwitchAPI(url, params, token, retryCount = 0) {
+  const MAX_RETRIES = 2;
+  
   try {
     const response = await axios.get(url, {
       params: params,
@@ -135,7 +150,7 @@ async function callTwitchAPI(url, params, token) {
     
     return response.data;
   } catch (error) {
-    console.error('Twitch API call failed:', error.message);
+    console.error(`Twitch API call failed (attempt ${retryCount + 1}):`, error.message);
     
     // エラーレスポンスの詳細情報を取得
     let errorMessage = error.message;
@@ -144,43 +159,64 @@ async function callTwitchAPI(url, params, token) {
     if (error.response) {
       statusCode = error.response.status;
       errorMessage = `Twitch API returned ${statusCode}: ${JSON.stringify(error.response.data)}`;
+      
+      // 認証エラーの場合はトークンをリセットして再取得
+      if (statusCode === 401 && retryCount < MAX_RETRIES) {
+        console.log('Auth token expired, refreshing token and retrying...');
+        twitchToken = null;
+        tokenExpiry = null;
+        const newToken = await getTwitchToken();
+        return callTwitchAPI(url, params, newToken, retryCount + 1);
+      }
+    }
+    
+    // リトライが可能な場合
+    if (retryCount < MAX_RETRIES) {
+      const delay = Math.pow(2, retryCount) * 1000; // エクスポネンシャルバックオフ
+      console.log(`Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return callTwitchAPI(url, params, token, retryCount + 1);
     }
     
     throw new TwitchAPIError(errorMessage, statusCode);
   }
 }
 
-// 新人配信者の情報を取得する関数
-async function fetchNewcomerStreamers(token) {
+// 並列リクエストを使って新人配信者の情報を効率的に取得する関数
+async function fetchNewcomerStreamersOptimized(token) {
   try {
-    // まず、配信中の新人配信者を取得
-    const streamsResponse = await callTwitchAPI(
-      'https://api.twitch.tv/helix/streams',
-      { 
-        user_login: NEWCOMER_STREAMERS,
-        first: 100,
-        language: 'ja'
-      },
-      token
-    );
+    // 1. 並列で必要なデータを取得
+    console.log('Fetching streams and users data in parallel...');
+    
+    const [streamsResponse, usersResponse] = await Promise.all([
+      // 配信中の新人配信者を取得
+      callTwitchAPI(
+        'https://api.twitch.tv/helix/streams',
+        { 
+          user_login: NEWCOMER_STREAMERS,
+          first: 100
+        },
+        token
+      ),
+      
+      // 配信者のユーザー情報を取得
+      callTwitchAPI(
+        'https://api.twitch.tv/helix/users',
+        { login: NEWCOMER_STREAMERS },
+        token
+      )
+    ]);
     
     const liveStreams = streamsResponse.data || [];
-    console.log(`Found ${liveStreams.length} live newcomer streamers`);
-    
-    // 配信者のユーザー情報を取得
-    const usersResponse = await callTwitchAPI(
-      'https://api.twitch.tv/helix/users',
-      { login: NEWCOMER_STREAMERS },
-      token
-    );
-    
     const users = usersResponse.data || [];
+    
+    console.log(`Found ${liveStreams.length} live newcomer streamers`);
     console.log(`Found ${users.length} newcomer user profiles`);
     
     // ユーザー情報をマップ形式で整理
     const usersMap = {};
     users.forEach(user => {
-      usersMap[user.login] = user;
+      usersMap[user.login.toLowerCase()] = user;
     });
     
     // 配信中の情報をマップ形式で整理
@@ -246,7 +282,14 @@ async function fetchNewcomerStreamers(token) {
     });
     
     // 視聴者数でソート（配信中の人が上位に来るように）
-    allStreamersData.sort((a, b) => b.viewer_count - a.viewer_count);
+    allStreamersData.sort((a, b) => {
+      // まず配信状態でソート（配信中が上）
+      if (a.is_live !== b.is_live) {
+        return a.is_live ? -1 : 1;
+      }
+      // 次に視聴者数でソート
+      return b.viewer_count - a.viewer_count;
+    });
     
     return allStreamersData;
   } catch (error) {
