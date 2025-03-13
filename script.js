@@ -531,7 +531,7 @@ function init() {
         });
         
     // 60秒ごとにデータを更新
-    setInterval(fetchData, 60000);
+    setInterval(fetchData, 600000);
 }
     
     // 初期化を実行
