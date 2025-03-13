@@ -5,11 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>期待の新人配信者ランキング - Twitch</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* スケルトンUI用のスタイル */
+        .skeleton-loader {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+        }
+        
+        .skeleton-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .skeleton-cell {
+            height: 20px;
+        }
+        
+        .skeleton-rank {
+            width: 30px;
+            margin-right: 10px;
+        }
+        
+        .skeleton-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .skeleton-name {
+            width: 120px;
+            height: 40px;
+            margin-right: 20px;
+        }
+        
+        .skeleton-title {
+            width: 60%;
+            height: 20px;
+            margin-right: 20px;
+        }
+        
+        .skeleton-viewers {
+            width: 60px;
+            height: 20px;
+            margin-left: auto;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1><a href="./" style="text-decoration: none; color: inherit;">Twitchの配信者ランキング</a></h1>
-        <p id="last-updated">最終更新: <span id="update-time">--</span></p>
+    <header class="site-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <h1><a href="./" class="logo">twitch rank</a></h1>
+            </div>
+            <div class="header-info">
+                <p id="last-updated">最終更新: <span id="update-time">--</span></p>
+            </div>
+        </div>
     </header>
 
     <main>
@@ -23,19 +84,30 @@
                     <p>ぶいすぽの配信者</p>
                 </div>
             </div>
-           
-          <!-- 期待の新人配信者ランキング
-注目の新人配信者の最新情報 -->
-
             
             <div class="navigation-links">
                 <a href="./" class="nav-link">メインランキングに戻る</a>
             </div>
             
-          <!--    <div class="pagination-container">
-                <button id="page1" class="pagination-button active">ランキング</button>
-            </div>-->
+            <!-- スケルトンローダー -->
+            <div id="skeleton-loader">
+                <div class="skeleton-table" style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+                    <!-- テーブルヘッダー -->
+                    <div style="background-color: #6441a5; color: white; padding: 12px 15px; display: flex;">
+                        <div style="width: 40px;">#</div>
+                        <div style="width: 240px;">配信者</div>
+                        <div style="flex-grow: 1;">タイトル</div>
+                        <div style="width: 80px; text-align: right;">視聴者数</div>
+                    </div>
+                    
+                    <!-- スケルトンローダーの行（10行表示） -->
+                    <div id="skeleton-rows">
+                        <!-- JavaScriptで10行のスケルトンを生成 -->
+                    </div>
+                </div>
+            </div>
             
+            <!-- 実際のデータテーブル（初期状態では非表示） -->
             <table id="rankings" style="display: none;">
                 <thead>
                     <tr>
@@ -60,6 +132,21 @@
         // DOMが読み込まれたら実行
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded - Newcomers Page');
+            
+            // スケルトンローダーの生成
+            const skeletonRows = document.getElementById('skeleton-rows');
+            for (let i = 0; i < 10; i++) {
+                const row = document.createElement('div');
+                row.className = 'skeleton-row';
+                row.innerHTML = `
+                    <div class="skeleton-rank skeleton-loader">${i+1}</div>
+                    <div class="skeleton-avatar skeleton-loader"></div>
+                    <div class="skeleton-name skeleton-loader"></div>
+                    <div class="skeleton-title skeleton-loader"></div>
+                    <div class="skeleton-viewers skeleton-loader"></div>
+                `;
+                skeletonRows.appendChild(row);
+            }
             
             // 配信時間の色を決定する関数
             function getDurationColor(durationText) {
@@ -104,6 +191,7 @@
             const rankingsTable = document.getElementById('rankings');
             const rankingsBody = document.getElementById('rankings-body');
             const updateTimeElement = document.getElementById('update-time');
+            const skeletonLoader = document.getElementById('skeleton-loader');
             
             // 数値をフォーマットする関数
             function formatNumber(num) {
@@ -119,6 +207,7 @@
             // エラー表示関数
             function showError(message) {
                 if (loadingElement) loadingElement.style.display = 'none';
+                if (skeletonLoader) skeletonLoader.style.display = 'none';
                 if (errorElement) {
                     errorElement.textContent = message || 'データの取得に失敗しました';
                     errorElement.style.display = 'block';
@@ -128,9 +217,14 @@
             // 新人配信者データを取得する関数
             async function fetchNewcomersData() {
                 try {
-                    // ローディング表示、エラーとテーブルを非表示
-                    if (loadingElement) loadingElement.style.display = 'block';
+                    // エラーを非表示
                     if (errorElement) errorElement.style.display = 'none';
+                    
+                    // ローディングとスケルトンを表示
+                    if (loadingElement) loadingElement.style.display = 'block';
+                    if (skeletonLoader) skeletonLoader.style.display = 'block';
+                    
+                    // テーブルを非表示
                     if (rankingsTable) rankingsTable.style.display = 'none';
                     
                     console.log('Fetching newcomers data from API...');
@@ -140,9 +234,17 @@
                     
                     console.log('Requesting API URL:', apiUrl);
                     
+                    // タイムアウト用のPromise
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('リクエストがタイムアウトしました')), 10000);
+                    });
+                    
                     try {
-                        // APIからデータを取得
-                        const response = await fetch(apiUrl);
+                        // APIからデータを取得（タイムアウト付き）
+                        const response = await Promise.race([
+                            fetch(apiUrl),
+                            timeoutPromise
+                        ]);
                         
                         // レスポンスのステータスをチェック
                         if (!response.ok) {
@@ -158,15 +260,15 @@
                         // データが空の場合
                         if (!data || data.length === 0) {
                             showError('表示するデータがありません。');
-                            if (loadingElement) loadingElement.style.display = 'none';
                             return;
                         }
                         
                         // テーブルを更新
                         updateTable(data);
                         
-                        // ローディングを非表示、テーブルを表示
+                        // ローディングとスケルトンを非表示、テーブルを表示
                         if (loadingElement) loadingElement.style.display = 'none';
+                        if (skeletonLoader) skeletonLoader.style.display = 'none';
                         if (rankingsTable) rankingsTable.style.display = 'table';
                         
                         // 更新時刻を設定
@@ -254,8 +356,21 @@
             function init() {
                 console.log('Initializing newcomers page...');
                 
-                // 新人配信者データを取得
-                fetchNewcomersData();
+                // 現在時刻を表示
+                updateCurrentTime();
+                
+                // 新人配信者データを取得（コンテンツが見えるようになったら実行）
+                if (window.requestIdleCallback) {
+                    // requestIdleCallbackが利用可能な場合はそれを使用
+                    requestIdleCallback(() => {
+                        fetchNewcomersData();
+                    });
+                } else {
+                    // 利用不可の場合は短いタイムアウトで実行
+                    setTimeout(() => {
+                        fetchNewcomersData();
+                    }, 100);
+                }
                 
                 // 60秒ごとにデータを更新
                 setInterval(fetchNewcomersData, 60000);
