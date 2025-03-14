@@ -274,13 +274,13 @@ main .filter-container {
 .pagination-button:hover {
     background-color: #e0e0e0;
 }
-/*
+
 .pagination-button.active {
     background-color: #6441a5;
     color: white;
     border-color: #6441a5;
 }
-*/
+
 /* テーブルスタイル */
 #rankings {
     width: 100%;
@@ -890,7 +890,7 @@ td:nth-child(3) a {
 }
 
 .nav-link:hover {
-    background-color: #f0f0f0;
+    background-color: #7d5bbe;
 }
 
 /* 新人配信者ページのスタイル */
