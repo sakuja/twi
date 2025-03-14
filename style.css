@@ -276,9 +276,9 @@ main .filter-container {
 }
 
 .pagination-button.active {
-    background-color: #6441a5;
+    background-color: #f0f0f0;
     color: white;
-    border-color: #6441a5;
+    border-color: #f0f0f0;
 }
 
 /* テーブルスタイル */
