@@ -274,13 +274,13 @@ main .filter-container {
 .pagination-button:hover {
     background-color: #e0e0e0;
 }
-
+/*
 .pagination-button.active {
     background-color: #6441a5;
     color: white;
     border-color: #6441a5;
 }
-
+*/
 /* テーブルスタイル */
 #rankings {
     width: 100%;
