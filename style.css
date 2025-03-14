@@ -277,7 +277,7 @@ main .filter-container {
 
 .pagination-button.active {
     background-color: #f0f0f0;
-    color: white;
+   
     border-color: #f0f0f0;
 }
 
