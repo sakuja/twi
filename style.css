@@ -878,20 +878,31 @@ td:nth-child(3) a {
     text-align: center;
 }
 
+
+
+
 .nav-link {
-    display: inline-block;
+    background-color: #f0f0f0;
+    border: none;
     padding: 8px 16px;
-    background-color: #eee;
-    color: #000;
-    text-decoration: none;
+    margin: 0;
+    cursor: pointer;
     border-radius: 4px;
     font-weight: bold;
     transition: background-color 0.3s;
 }
 
 .nav-link:hover {
-    background-color: #f0f0f0;
+    background-color: #e0e0e0;
 }
+
+.nav-link.active {
+    background-color: #f0f0f0;
+   
+    border-color: #f0f0f0;
+}
+
+
 
 /* 新人配信者ページのスタイル */
 .page-title {
